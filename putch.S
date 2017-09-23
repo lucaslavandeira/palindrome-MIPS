@@ -27,8 +27,8 @@
 #define BUFFER_POS STACK_FRAME_SIZE+4
 #endif
 
-#ifndef IBYTES_POS
-#define IBYTES STACK_FRAME_SIZE+8
+#ifndef OBYTES_POS
+#define OBYTES STACK_FRAME_SIZE+8
 #endif
 
 #ifndef POSITION_POS
@@ -82,7 +82,7 @@ putch:
     move $fp, sp
     sw a0, FD_POS($fp)  # file descriptor
     sw a1, BUFFER_POS($fp)  # buffer
-    sw a2, IBYTES_POS($fp)  # capacidad maxima del buffer
+    sw a2, OBYTES_POS($fp)  # capacidad maxima del buffer
     sw a3, POSITION_POS($fp)  # position actual de escritura del buffer
     sw a4, CHAR_POS($fp)  # caracter a escribir
     #---------------------------------------------------------------------------
@@ -94,10 +94,10 @@ putch:
     la t0, a3 # cargo el valor de la direccion de memoria de la posicion en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
     # t0 = *pos
-    lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
+    lw a2, OBYTES_POS($fp)  # Redundante pero provisorio
     # a2 = oBytes
-    beq a2, t0, readFile  # if (*pos == iBytes) writeFile
-    beq t0, ZERO, readFile  # if (*pos == 0) writeFile
+    beq a2, t0, writeFile  # if (*pos == oBytes) writeFile
+    beq t0, ZERO, writeFile  # if (*pos == 0) writeFile
 #-------------------------------------------------------------------------------
 # WRITE VALUE
 #-------------------------------------------------------------------------------
@@ -149,21 +149,21 @@ writeFile:
     # *pos = 0
     #---------------------------------------------------------------------------
     li t1, ZERO  # int sent = 0
-    lw a2, IBYTES_POS($fp)  # Redundante pero provisorio  a2 = oBytes
+    lw a2, OBYTES_POS($fp)  # Redundante pero provisorio  a2 = oBytes
 while:
     # Aca pregunto si la condicion del while es falsa. De serlo sigo
     # con la parte de escribir el siguiente caracter del buffer, es decir,
     #con la parte del codigo llamada writeValue
     # t1 = sent;   a2 = oBytes
     subu t2, t1, a2  # t2 = sent - oBytes
-    bgez t2, findValue  # if (received >= iBytes) sale del while
+    bgez t2, writeValue  # if (sent >= oBytes) sale del while
 
     # Aca llamo al SYSCALL del write
     li v0, SYS_write
     lw a0, FD_POS($fp)  # Redundante pero provisorio
     lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
     addu a1, a1, t1  # buffer+sent
-    lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
+    lw a2, OBYTES_POS($fp)  # Redundante pero provisorio
     SYSCALL
     #---------------------------------------------------------------------------
     # VERIFICACION DE ERRORES DE WRITE
