@@ -35,12 +35,8 @@
 #define POSITION_POS STACK_FRAME_SIZE+12
 #endif
 #-------------------------------------------------------------------------------
-    .text
-    .abicalls
-    .align 2
-    .globl getch
-    .ent getch
-
+# CODIGO EQUIVALENTE EN C
+#-------------------------------------------------------------------------------
 #int getch(int fd, char* buffer, size_t iBytes, size_t* pos) {
     #if (*pos == iBytes || *pos == 0 || pos != -1) {
         #*pos = 0
@@ -56,10 +52,15 @@
     #*pos++;
     #return c;
 #}
-
+#-------------------------------------------------------------------------------
+    .text
+    .abicalls
+    .align 2
+    .globl getch
+    .ent getch
 getch:
     # Inicializacion del stack frame
-    frame $fp, 10, ra
+    frame $fp, STACK_FRAME_SIZE, ra
     .set	noreorder
     .cpload t9
     .set	reorder
@@ -181,7 +182,7 @@ END_READING:  # *pos = -1
     # leer menos que iBytes del archivo de entrada y entonces el loop no va a
     # buclear hasta recorrer iBytes sino que detecto el EOF y el buffer no
     # va a estar lleno
-    
+
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
