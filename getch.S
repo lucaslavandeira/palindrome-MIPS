@@ -148,27 +148,24 @@ while:
     adu t3, ZERO, -1  # Guardo -1 en t3
     beq t0, t3, findValue  # if (*pos == 1) sale del while
 
-    # Aca llamo al SYSCALL del write
+    # Aca llamo al SYSCALL del read
     li v0, SYS_read
     lw a0, FD_POS($fp)  # Redundante pero provisorio
-    li, a0, a0
     lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
     addu a1, a1, t1  # buffer+received
-    la a1, a1
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
-    li a2, a2
     SYSCALL
-    # Verificacion de errores
-
+    #---------------------------------------------------------------------------
+    # VERIFICACION DE ERRORES DE READ
+    #---------------------------------------------------------------------------
     bne a3, ZERO, ERROR  # si a3 !=0 retorna error
 
-    # write retorna su valor en el registro v0. Entonces si v0 es -1 quiere
+    # read retorna su valor en el registro v0. Entonces si v0 es -1 quiere
     # decir que hubo un error.
     adu t3, ZERO, -1  # Guardo -1 en t3
     beq v0, t3, ERROR  # si vo == -1 retorna error
 
-
-    # write retorna su valor en el registro v0. Entonces si v0 es 0 quiere
+    # read retorna su valor en el registro v0. Entonces si v0 es 0 quiere
     # decir que detecto el EOF
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
     beq v0, ZERO, END_READING
@@ -176,6 +173,9 @@ while:
     # Actualizo la posicion del buffer para que pueda seguir escribiendo sobre
     # el en la parte restante
     addu t1, t1, v0  #  received += bytesRead;
+    #---------------------------------------------------------------------------
+    # FIN VERIFICACION DE ERRORES DE READ
+    #---------------------------------------------------------------------------
     j while
 
 END_READING:  # *pos = -1
