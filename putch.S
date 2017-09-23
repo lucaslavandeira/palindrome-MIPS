@@ -34,33 +34,44 @@
 #ifndef POSITION_POS
 #define POSITION_POS STACK_FRAME_SIZE+12
 #endif
+
+#ifndef CHAR_POS
+#define CHAR_POS STACK_FRAME_SIZE+16
+#endif
+
+#ifndef EOF
+#define EOF -1
+#endif
 #-------------------------------------------------------------------------------
 # CODIGO EQUIVALENTE EN C
 #-------------------------------------------------------------------------------
-#int getch(int fd, char* buffer, size_t iBytes, size_t* pos) {
-    #if (*pos == iBytes || *pos == 0 || pos != -1) {
+#int putch(int fd, char* buffer, size_t oBytes, size_t* pos, char c) {
+    #if (*pos == oBytes || c == EOF) {
         #*pos = 0
-        int received = 0, bytesRead;
-        #while (received < iBytes && pos != -1) {
-            #bytesRead = read(fd, buffer+received, iBytes-received);
-            #if (bytesRead == -1) return -1;
-            #if (bytesRead == 0) *pos = -1;
-            #received += bytesRead;
+        int sent = 0, bytesSent;
+        #while (sent < oBytes) {
+            #bytesSent = write(fd, buffer+sent, oBytes-sent);
+            #if (bytesSent == -1) return -1;
+            #sent += bytesSent;
         #}
     #}
-    #int c = buffer[*pos];
+    #buffer[*pos] = c;
     #*pos++;
-    #return c;
+    #return sent;
 #}
+#-------------------------------------------------------------------------------
+# CODIGO EN MIPS
 #-------------------------------------------------------------------------------
     .text
     .abicalls
     .align 2
-    .globl getch
-    .ent getch
-getch:
+    .globl putch
+    .ent putch
+putch:
+    #---------------------------------------------------------------------------
     # Inicializacion del stack frame
-    frame $fp, STACK_FRAME_SIZE, ra
+    #---------------------------------------------------------------------------
+    frame $fp, 10, ra
     .set	noreorder
     .cpload t9
     .set	reorder
@@ -69,35 +80,39 @@ getch:
     sw $fp, FRAME_POINTER_POS(sp)
     sw ra, RETURN_POINTER_POS(sp)
     move $fp, sp
-    sw a0, FD_POS($fp)
-    sw a1, BUFFER_POS($fp)
-    sw a2, IBYTES_POS($fp)
-    sw a3, POSITION_POS($fp)
+    sw a0, FD_POS($fp)  # file descriptor
+    sw a1, BUFFER_POS($fp)  # buffer
+    sw a2, IBYTES_POS($fp)  # capacidad maxima del buffer
+    sw a3, POSITION_POS($fp)  # position actual de escritura del buffer
+    sw a4, CHAR_POS($fp)  # caracter a escribir
+    #---------------------------------------------------------------------------
     # Fin de la inicializacion del stack frame
+    #---------------------------------------------------------------------------
+    #if (*pos == oBytes || c == EOF)
 
-    # verifico si el buffer esta vacio a ya lo lei todo
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de la posicion en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    # t0 = *pos
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
-    # t0 = *pos;
-    # a2 = iBytes;
-    beq a2, t0, readFile  # if (*pos == iBytes) readFile
-    beq t0, ZERO, readFile  # if (*pos == 0) readFile
-    addu t1, ZERO, -1;  # Guardo -1 en t0
-    # t1 = -1;
-    bne t0, t1, readFile  # if (*pos != -1) readFile
-
-findValue:
-
+    # a2 = oBytes
+    beq a2, t0, readFile  # if (*pos == iBytes) writeFile
+    beq t0, ZERO, readFile  # if (*pos == 0) writeFile
+#-------------------------------------------------------------------------------
+# WRITE VALUE
+#-------------------------------------------------------------------------------
+writeValue:
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de la 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    # t0 = *pos
 
-    # int c = buffer[+pos];
-    lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
+    # buffer[+pos];
+    lw a1, BUFFER_POS($fp)  # Redundante pero provisorio a1 = buffer
     addu a1, a1, t0  # cargo en a1 la dir de mem de lo ocupado en Buffer[pos]
-    lb v0, 0(a1)  # guardo en vo lo que esta guardado en buffer[pos]
+    # a1 = buffer + pos
+    lw a4, CHAR_POS($fp)  # Redundante pero provisorio a4 = c
+    sb a4, 0(a1)  # Escribo en buffer[pos] el caracter recibido buffer[pos] = c
 
     # *pos++;
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
@@ -106,16 +121,22 @@ findValue:
     addu t0, t0, 1  # incremento el valor de la posicion
     sw t0, 0(a3)  # guardo el incremento en la direccion de memoria de 'pos'
 
+    li v0, ZERO  # return 0
+#-------------------------------------------------------------------------------
+# RETURN
+#-------------------------------------------------------------------------------
 return:
     lw gp, GLOBAL_POINTER_POS(sp)
     lw $fp, FRAME_POINTER_POS(sp)
     lw ra, RETURN_POINTER_POS(sp)
     addu sp, sp, STACK_FRAME_SIZE
     jr ra
-    .end getch
-    .size getch,.-getch
-
-readFile:
+    .end putch
+    .size putch,.-putch
+#-------------------------------------------------------------------------------
+# WRITE FILE
+#-------------------------------------------------------------------------------
+writeFile:
     # Aca desreferencio pos, y le guardo cero, y luego hago que la posicion
     # de memoria de pos a apunte a ese nuevo valor
     #---------------------------------------------------------------------------
@@ -127,71 +148,40 @@ readFile:
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     # *pos = 0
     #---------------------------------------------------------------------------
-    li t1, ZERO  # int received = 0
-    lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
+    li t1, ZERO  # int sent = 0
+    lw a2, IBYTES_POS($fp)  # Redundante pero provisorio  a2 = oBytes
 while:
-    # Como el while contiene un 'and' si alguno es falso sale de la condicion
-
-    # Aca pregunto si la primera condicion del while es falsa. De serlo sigo
-    # con la parte de leer el siguiente caracter del buffer, es decir, con la
-    # parte del codigo llamada findValue
-    subu t2, t1,  a2  # t2 = received - iBytes
+    # Aca pregunto si la condicion del while es falsa. De serlo sigo
+    # con la parte de escribir el siguiente caracter del buffer, es decir,
+    #con la parte del codigo llamada writeValue
+    # t1 = sent;   a2 = oBytes
+    subu t2, t1, a2  # t2 = sent - oBytes
     bgez t2, findValue  # if (received >= iBytes) sale del while
 
-
-    # Aca pregunto si la segunda condicion del while es falsa. De serlo sigo
-    # con la parte de leer el siguiente caracter del buffer, es decir, con la
-    # parte del codigo llamada findValue
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    adu t3, ZERO, -1  # Guardo -1 en t3
-    beq t0, t3, findValue  # if (*pos == 1) sale del while
-
-    # Aca llamo al SYSCALL del read
-    li v0, SYS_read
+    # Aca llamo al SYSCALL del write
+    li v0, SYS_write
     lw a0, FD_POS($fp)  # Redundante pero provisorio
     lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
-    addu a1, a1, t1  # buffer+received
+    addu a1, a1, t1  # buffer+sent
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
     SYSCALL
     #---------------------------------------------------------------------------
-    # VERIFICACION DE ERRORES DE READ
+    # VERIFICACION DE ERRORES DE WRITE
     #---------------------------------------------------------------------------
     bne a3, ZERO, ERROR  # si a3 !=0 retorna error
 
-    # read retorna su valor en el registro v0. Entonces si v0 es -1 quiere
+    # write retorna su valor en el registro v0. Entonces si v0 es -1 quiere
     # decir que hubo un error.
-    adu t3, ZERO, -1  # Guardo -1 en t3
+    adu t3, ZERO, -1  # t3 = -1
     beq v0, t3, ERROR  # si vo == -1 retorna error
 
-    # read retorna su valor en el registro v0. Entonces si v0 es 0 quiere
-    # decir que detecto el EOF
-    lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
-    beq v0, ZERO, END_READING
-
-    # Actualizo la posicion del buffer para que pueda seguir leyendo sobre
+    # Actualizo la posicion del buffer para que pueda seguir escribiendo sobre
     # el en la parte restante
-    addu t1, t1, v0  #  received += bytesRead;
+    addu t1, t1, v0  #  sent += bytesSent;
     #---------------------------------------------------------------------------
-    # FIN VERIFICACION DE ERRORES DE READ
+    # FIN VERIFICACION DE ERRORES DE WRITE
     #---------------------------------------------------------------------------
     j while
-
-END_READING:  # *pos = -1
-    # Aca hago que la variable pos valga -1ya que significa que no debo ler mas
-    # porque lo mas probable es que haya pedido iBytes al sistema operativo
-    # y me haya delvuelto menos porque llego al EOF. Es decir solo restaban
-    # leer menos que iBytes del archivo de entrada y entonces el loop no va a
-    # buclear hasta recorrer iBytes sino que detecto el EOF y el buffer no
-    # va a estar lleno
-
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    addu to, ZERO, -1  # *pos = -1 significa no leer mas
-    sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
-    j findValue  # salto a buscar el siguiente caracter
 ERROR:
     addu v0, ZERO, -1  # Guardo en v0 el valor -1 que representa error
     j return
