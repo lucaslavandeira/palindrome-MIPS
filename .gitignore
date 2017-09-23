@@ -1,52 +1,20 @@
-# Prerequisites
-*.d
+# Ejecutable
+tp1
+# Output de LaTeX
+informe.aux
+informe.log
+informe.out
+informe.toc
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+# Errores de pruebas
+test/error/*
+!test/error/.gitkeep
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# Archivos tmp de pruebas
+tmp
+stdout.tmp
 
-# Precompiled Headers
-*.gch
-*.pch
+# IDE files
+cmake-build-debug/
+.idea/
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
