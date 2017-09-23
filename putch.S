@@ -97,7 +97,9 @@ putch:
     lw a2, OBYTES_POS($fp)  # Redundante pero provisorio
     # a2 = oBytes
     beq a2, t0, writeFile  # if (*pos == oBytes) writeFile
-    beq t0, ZERO, writeFile  # if (*pos == 0) writeFile
+    lw a4, CHAR_POS($fp)   # Redundante pero provisorio a4 = c
+    li t0, ZERO, EOF
+    beq a4, t0, writeFile  # if (*pos == 0) writeFile
 #-------------------------------------------------------------------------------
 # WRITE VALUE
 #-------------------------------------------------------------------------------
