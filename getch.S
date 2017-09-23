@@ -139,7 +139,9 @@ while:
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
     li a2, a2
     SYSCALL
-    bne a3, ZERO, ERROR  # si a3 !=0 sretorna error
+    bne a3, ZERO, ERROR  # si a3 !=0 retorna error
+    adu t3, ZERO, -1  # Guardo -1 en t3
+    beq v0, t3, ERROR  # si vo == 0 retorna error
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
     beq v0, ZERO, END_READING
     addu t1, t1, v0  #  received += bytesRead;
