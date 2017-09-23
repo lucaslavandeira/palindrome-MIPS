@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+#define _POSIX_C_SOURCE 1 // Necesario para la función fileno
+>>>>>>> 16417634e7e1a1b730745b216929de4b95f7e9ec
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -9,16 +13,26 @@
 //------------------------------------------------------------------------------
 #define ERROR 1
 #define SUCCESS 0
+<<<<<<< HEAD
 #define VERSION "0.2"
 const char help_str[] = "Usage:\n"
         "  tp0 -h\n"
         "  tp0 -V\n"
         "  tp0 [options]\n"
+=======
+#define VERSION "dev"
+
+const char help_str[] = "Usage:\n"
+        "  tp1 -h\n"
+        "  tp1 -V\n"
+        "  tp1 [options]\n"
+>>>>>>> 16417634e7e1a1b730745b216929de4b95f7e9ec
         "Options:\n"
         "  -V, --version\tPrint version and quit.\n"
         "  -h, --help\tPrint this information.\n"
         "  -i, --input\tLocation of the input file.\n"
         "  -o, --output\tLocation of the output file.\n"
+<<<<<<< HEAD
         "Examples:\n"
         "  tp0 -i ~/input -o\n";
 #define SPACE_SIZE 65
@@ -75,6 +89,12 @@ bool belongsToSpace(int aChar) {
     if (aChar >= SPACE_INDEX) return false;
     return spaceIndex[aChar] != EMPTY;
 }
+=======
+        "  -I, --ibuf-bytes\tByte-count of the input buffer."
+        "  -O, --obuf-bytes\tByte-count of the output buffer."
+        "Examples:\n"
+        "  tp1 -i ~/input -o\n";
+>>>>>>> 16417634e7e1a1b730745b216929de4b95f7e9ec
 //------------------------------------------------------------------------------
 // EQUAL
 //------------------------------------------------------------------------------
@@ -110,7 +130,11 @@ int argParse(int argc, char** argv, FILE** descriptors, int* clean_exit) {
                 return SUCCESS;
             }
             if (equal(flag, "-V") || equal(flag, "--version")) {
+<<<<<<< HEAD
                 printf("tp0: version %s\n", VERSION);
+=======
+                printf("tp1: version %s\n", VERSION);
+>>>>>>> 16417634e7e1a1b730745b216929de4b95f7e9ec
                 *clean_exit = 1;
                 return SUCCESS;
             }
@@ -134,6 +158,7 @@ int argParse(int argc, char** argv, FILE** descriptors, int* clean_exit) {
     }
     return SUCCESS;
 }
+<<<<<<< HEAD
 //------------------------------------------------------------------------------
 // MAIN
 //------------------------------------------------------------------------------
@@ -159,3 +184,27 @@ int main(int argc, char** argv) {
     return 0;
 }
 //------------------------------------------------------------------------------
+=======
+
+int main(int argc, char** argv) {
+    FILE* fpointers[2];
+    int fdescriptors[2];
+    int clean_exit = 0;
+    if(argParse(argc, argv, fpointers, &clean_exit) == ERROR) {
+        return ERROR;
+    }
+
+    if (clean_exit) {
+        return SUCCESS;
+    }
+
+    for (int i = 0; i < 2; ++i) {
+        fdescriptors[i] = fileno(fpointers[i]);
+        if (fdescriptors[i] < 0) {
+            return ERROR;
+        }
+    }
+    return SUCCESS;
+}
+
+>>>>>>> 16417634e7e1a1b730745b216929de4b95f7e9ec
