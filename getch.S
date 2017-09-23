@@ -138,7 +138,6 @@ while:
     subu t2, t1,  a2  # t2 = received - iBytes
     bgez t2, findValue  # if (received >= iBytes) sale del while
 
-
     # Aca pregunto si la segunda condicion del while es falsa. De serlo sigo
     # con la parte de leer el siguiente caracter del buffer, es decir, con la
     # parte del codigo llamada findValue
