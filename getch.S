@@ -139,6 +139,7 @@ while:
     lw a0, FD_POS($fp)  # Redundante pero provisorio
     li, a0, a0
     lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
+    addu a1, a1, t1  # buffer+received
     la a1, a1
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
     li a2, a2
