@@ -89,17 +89,17 @@ findValue:
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de la 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    # Redundante
 
-    sll to, to, 2  # multiplico por 4 la posicion
+    # int c = buffer[+pos];
     lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
-    addu a1, a1, to  # cargo en a1 la dir de mem de lo ocupado en Buffer[pos]
-    lw v0, 0(a1)  # guardo en vo lo que esta guardado en buffer[pos]
+    addu a1, a1, t0  # cargo en a1 la dir de mem de lo ocupado en Buffer[pos]
+    lb v0, 0(a1)  # guardo en vo lo que esta guardado en buffer[pos]
 
+    # *pos++;
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    addu to, to, 1  # incremento el valor de la posicion
+    addu t0, t0, 1  # incremento el valor de la posicion
     sw t0, 0(a3)  # guardo el incremento en la direccion de memoria de 'pos'
 
 return:
@@ -108,8 +108,12 @@ return:
     lw ra, RETURN_POINTER_POS(sp)
     addu sp, sp, STACK_FRAME_SIZE
     jr ra
+    .end getch
+    .size getch,.-getch
 
 readFile:
+    # Aca desreferencio pos, y le guardo cero, y luego hago que la posicion
+    # de memoria de pos a apunte a ese nuevo valor
     #---------------------------------------------------------------------------
     # *pos = 0
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
@@ -151,10 +155,10 @@ END_READING:  # *pos = -1
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    addu to, ZERO, -1  # pos = -1 significa no leer mas
+    addu to, ZERO, -1  # *pos = -1 significa no leer mas
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     j findValue  # salto a buscar el siguiente caracter
 ERROR:
     addu v0, ZERO, -1  # Guardo en v0 el valor -1 que representa error
     j return
-    .end getch
+#-------------------------------------------------------------------------------
