@@ -80,10 +80,13 @@ getch:
     la t0, a3 # cargo el valor de la direccion de memoria de la posicion en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
+    # t0 = *pos;
+    # a2 = iBytes;
     beq a2, t0, readFile  # if (*pos == iBytes) readFile
-    beq a2, ZERO, readFile  # if (*pos == 0) readFile
-    addu t0, ZERO, -1;  # Guardo -1 en t0
-    bne a2, t0, readFile # if (*pos != -1)
+    beq t0, ZERO, readFile  # if (*pos == 0) readFile
+    addu t1, ZERO, -1;  # Guardo -1 en t0
+    # t1 = -1;
+    bne t0, t1, readFile  # if (*pos != -1) readFile
 
 findValue:
 
