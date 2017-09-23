@@ -57,7 +57,17 @@
     .globl getch
     .ent getch
 
-# int getch(int fd, char* buffer, size_t iBytes, size_t* pos);
+#int getch(int fd, char* buffer, size_t iBytes, size_t* pos) {
+    #if (*pos == iBytes || pos == 0 || pos != -1) {
+        #*pos = 0
+        #int bytesRead = write(fd, buffer, iBytes);
+        #if (bytesRead == -1) return -1;
+        #if (bytesRead != iBytes) *pos = -1;
+    #}
+    #int c = buffer[*pos];
+    #*pos++;
+    #return c;
+#}
 
 getch:
     # Inicializacion del stack frame
@@ -83,6 +93,8 @@ getch:
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
     beq a2, t0, readFile  # if (*pos == iBytes) readFile
     beq a2, ZERO, readFile  # if (*pos == 0) readFile
+    addu t0, ZERO, -1;  # Guardo -1 en t0
+    bne a2, t0, readFile # if (*pos != -1)
 
 findValue:
 
@@ -110,6 +122,15 @@ return:
     jr ra
 
 readFile:
+    #---------------------------------------------------------------------------
+    # *pos = 0
+    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
+    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
+    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    addu t0, ZERO, 0  # le guardo el valor 0  a 'pos'
+    sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
+    # *pos = 0
+    #---------------------------------------------------------------------------
     li v0, SYS_read
     lw a0, FD_POS($fp)  # Redundante pero provisorio
     li, a0, a0
