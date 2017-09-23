@@ -34,22 +34,6 @@
 #ifndef POSITION_POS
 #define POSITION_POS STACK_FRAME_SIZE+12
 #endif
-
-#ifndef A0_AUX_POS
-#define A0_AUX_POS STACK_FRAME_SIZE-24
-#endif
-
-#ifndef A1_AUX_POS
-#define A1_AUX_POS A0_AUX_POS+4
-#endif
-
-#ifndef A2_AUX_POS
-#define A2_AUX_POS A1_AUX_POS+4
-#endif
-
-#ifndef A3_AUX_POS
-#define A3_AUX_POS A2_AUX_POS+4
-#endif
 #-------------------------------------------------------------------------------
     .text
     .abicalls
@@ -58,11 +42,15 @@
     .ent getch
 
 #int getch(int fd, char* buffer, size_t iBytes, size_t* pos) {
-    #if (*pos == iBytes || pos == 0 || pos != -1) {
+    #if (*pos == iBytes || *pos == 0 || pos != -1) {
         #*pos = 0
-        #int bytesRead = write(fd, buffer, iBytes);
-        #if (bytesRead == -1) return -1;
-        #if (bytesRead != iBytes) *pos = -1;
+        int received = 0, bytesRead;
+        #while (received < iBytes && pos != -1) {
+            #bytesRead = read(fd, buffer+received, iBytes-received);
+            #if (bytesRead == -1) return -1;
+            #if (bytesRead == 0) *pos = -1;
+            #received += bytesRead;
+        #}
     #}
     #int c = buffer[*pos];
     #*pos++;
@@ -131,6 +119,18 @@ readFile:
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     # *pos = 0
     #---------------------------------------------------------------------------
+    li t1, ZERO  # int received = 0
+    lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
+while:
+    subu t2, t1,  a2  # t2 = received - iBytes
+    bgez t2, findValue  # if (received >= iBytes) sale del while
+
+    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
+    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
+    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    adu t3, ZERO, -1  # Guardo -1 en t3
+    beq t0, t3, findValue  # if (*pos == 1) sale del while
+
     li v0, SYS_read
     lw a0, FD_POS($fp)  # Redundante pero provisorio
     li, a0, a0
@@ -141,10 +141,11 @@ readFile:
     SYSCALL
     bne a3, ZERO, ERROR  # si a3 !=0 sretorna error
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
-    bne v0, a2, END_READING
-    j findValue  # salto a buscar el siguiente caracter
+    beq v0, ZERO, END_READING
+    addu t1, t1, v0  #  received += bytesRead;
+    j while
 
-END_READING:
+END_READING:  # *pos = -1
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
