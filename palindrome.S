@@ -3,20 +3,20 @@
 #-------------------------------------------------------------------------------
 # DEFINITIONS
 #-------------------------------------------------------------------------------
-#ifndef STACK_FRAME_SIZE
-#define STACK_FRAME_SIZE 48
+#ifndef SF_SIZE
+#define SF_SIZE 48
 #endif
 
-#ifndef RETURN_POINTER_POS
-#define RETURN_POINTER_POS STACK_FRAME_SIZE-8
+#ifndef RA_POS
+#define RA_POS SF_SIZE-8
 #endif
 
-#ifndef GLOBAL_POINTER_POS
-#define GLOBAL_POINTER_POS RETURN_POINTER_POS-4
+#ifndef GP_POS
+#define GP_POS RA_POS-4
 #endif
 
-#ifndef FRAME_POINTER_POS
-#define FRAME_POINTER_POS FRAME_POINTER_POS-4
+#ifndef FP_POS
+#define FP_POS GP_POS-4
 #endif
 
 #ifndef IFD_POS
