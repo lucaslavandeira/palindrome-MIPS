@@ -42,14 +42,35 @@
 #ifndef EOF
 #define EOF -1
 #endif
-    
+##------------------------------------------------------------------------------
+## CODIGO EQUIVALENTE EN C
+##------------------------------------------------------------------------------
+##int putch(int fd, char* buffer, size_t oBytes, size_t* pos, char c) {
+    ##if (*pos == oBytes || c == EOF) {
+        ##*pos = 0
+        #int sent = 0, bytesSent;
+        ##while (sent < oBytes) {
+            #bytesSent = write(fd, buffer+sent, oBytes-sent);
+            ##if (bytesSent == -1) return -1;
+            ##sent += bytesSent;
+        ##}
+    ##}
+    ##buffer[*pos] = c;
+    ##*pos++;
+    ##return sent;
+##}
+##------------------------------------------------------------------------------
+## CODIGO EN MIPS
+##------------------------------------------------------------------------------
     .text
     .abicalls
     .align 2
     .globl putch
     .ent putch
 putch:
+    ##--------------------------------------------------------------------------
     ## Inicializacion del stack frame
+    ##--------------------------------------------------------------------------
     frame fp, 10, ra
     .set	noreorder
     .cpload t9
@@ -64,7 +85,9 @@ putch:
     sw a2, OBYTES_POS($fp)  # capacidad maxima del buffer
     sw a3, POSITION_POS($fp)  # position actual de escritura del buffer
     sw a4, CHAR_POS($fp)  # caracter a escribir
-    ## Fin de la inicializacion del stack frame
+    ##--------------------------------------------------------------------------
+    ## Inicializacion del stack frame
+    ##--------------------------------------------------------------------------
 
     ##if (*pos == oBytes || c == EOF)
 
@@ -79,8 +102,9 @@ putch:
     li t0, ZERO, EOF
     beq a4, t0, writeFile  # if (*pos == 0) writeFile
 
+##------------------------------------------------------------------------------
 ## WRITE VALUE
-
+##------------------------------------------------------------------------------
 writeValue:
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de la 'pos' en t0
@@ -102,9 +126,9 @@ writeValue:
     sw t0, 0(a3)  # guardo el incremento en la direccion de memoria de 'pos'
 
     li v0, 0  # return 0
-
+##------------------------------------------------------------------------------
 ## RETURN
-
+##------------------------------------------------------------------------------
 return:
     lw gp, GLOBAL_POINTER_POS(sp)
     lw $fp, FRAME_POINTER_POS(sp)
@@ -113,9 +137,9 @@ return:
     jr ra
     .end putch
     .size putch,.-putch
-
+##------------------------------------------------------------------------------
 ## WRITE FILE
-
+##------------------------------------------------------------------------------
 writeFile:
     ## Aca desreferencio pos, y le guardo cero, y luego hago que la posicion
     ## de memoria de pos a apunte a ese nuevo valor
@@ -144,7 +168,9 @@ while:
     addu a1, a1, t1  # buffer+sent
     lw a2, OBYTES_POS($fp)  # Redundante pero provisorio
     SYSCALL
+    ##--------------------------------------------------------------------------
     ## VERIFICACION DE ERRORES DE WRITE
+    ##--------------------------------------------------------------------------
     bne a3, ZERO, ERROR  # si a3 !=0 retorna error
 
     ## write retorna su valor en el registro v0. Entonces si v0 es -1 quiere
@@ -155,9 +181,12 @@ while:
     ## Actualizo la posicion del buffer para que pueda seguir escribiendo sobre
     ## el en la parte restante
     addu t1, t1, v0  #  sent += bytesSent;
+    ##--------------------------------------------------------------------------
     ## FIN VERIFICACION DE ERRORES DE WRITE
+    ##--------------------------------------------------------------------------
     j while
 ERROR:
     addu v0, $0, -1  # Guardo en v0 el valor -1 que representa error
     j return
+##------------------------------------------------------------------------------
 

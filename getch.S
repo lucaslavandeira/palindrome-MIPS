@@ -31,14 +31,34 @@
 #ifndef POSITION_POS
 #define POSITION_POS 60
 #endif
-
+##------------------------------------------------------------------------------
+## CODIGO EQUIVALENTE EN C
+##------------------------------------------------------------------------------
+##int getch(int fd, char* buffer, size_t iBytes, size_t* pos) {
+    ##if (*pos == iBytes || *pos == 0 || pos != -1) {
+        ##*pos = 0
+        #int received = 0, bytesRead;
+        ##while (received < iBytes && pos != -1) {
+            ##bytesRead = read(fd, buffer+received, iBytes-received);
+            ##if (bytesRead == -1) return -1;
+            ##if (bytesRead == 0) *pos = -1;
+            ##received += bytesRead;
+        ##}
+    ##}
+    ##int c = buffer[*pos];
+    ##*pos++;
+    ##return c;
+##}
+##------------------------------------------------------------------------------
     .text
     .abicalls
     .align 2
     .globl getch
     .ent getch
 getch:
+    ##--------------------------------------------------------------------------
     ## Inicializacion del stack frame
+    ##--------------------------------------------------------------------------
     frame $fp, STACK_FRAME_SIZE, ra
     .set	noreorder
     .cpload t9
@@ -52,7 +72,9 @@ getch:
     sw a1, BUFFER_POS($fp)
     sw a2, IBYTES_POS($fp)
     sw a3, POSITION_POS($fp)
+    ##--------------------------------------------------------------------------
     ## Fin de la inicializacion del stack frame
+    ##--------------------------------------------------------------------------
 
     ## verifico si el buffer esta vacio a ya lo lei todo
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
@@ -153,8 +175,7 @@ while:
     addu t1, t1, v0  #  received += bytesRead;
     ##--------------------------------------------------------------------------
     ## FIN VERIFICACION DE ERRORES DE READ
-    ##
-
+    ##--------------------------------------------------------------------------
     j while
 
 END_READING:  # *pos = -1
