@@ -1,5 +1,7 @@
+SOURCES=tp1.c *.S
+
 build:
-	gcc -std=c99 tp1.c -Wall -Werror -Wpedantic -o tp1 
+	gcc -std=c99 $(SOURCES) -Wall -Werror -o tp1 
 
 informe:
 	pdflatex informe.tex
