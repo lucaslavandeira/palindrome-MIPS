@@ -47,7 +47,7 @@
 ##------------------------------------------------------------------------------
 .MACRO dereferencePosTot0
     lw a3, POSITION_POS($fp)  ## Redundante pero provisorio
-    la t0, a3  # # cargo el valor de la direccion de memoria de 'pos' en t0
+    la t0, 0(a3)  # # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0)  ## desreferencio el puntero y guardo el valor en t0
 .ENDM
 ##------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ putch:
     ##--------------------------------------------------------------------------
     ## Inicializacion del stack frame
     ##--------------------------------------------------------------------------
-    frame fp, 10, ra
+    .frame $fp, 10, ra
     .set	noreorder
     .cpload t9
     .set	reorder
@@ -104,7 +104,7 @@ putch:
     ## a2 = oBytes
     beq a2, t0, writeFile  # if (*pos == oBytes) writeFile
     lw a4, CHAR_POS($fp)   # Redundante pero provisorio a4 = c
-    li t0, zero, EOF
+    li t0, EOF
     beq a4, t0, writeFile  # if (*pos == 0) writeFile
 
 ##------------------------------------------------------------------------------
@@ -122,7 +122,7 @@ writeValue:
 
     ## *pos++;
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
+    la t0, 0(a3) # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
     addu t0, t0, 1  # incremento el valor de la posicion
     sw t0, 0(a3)  # guardo el incremento en la direccion de memoria de 'pos'
@@ -151,7 +151,7 @@ writeFile:
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     ## *pos = 0
     
-    li t1, zero  # int sent = 0
+    li t1, 0  # int sent = 0
     lw a2, OBYTES_POS($fp)  # Redundante pero provisorio  a2 = oBytes
 while:
     ## Aca pregunto si la condicion del while es falsa. De serlo sigo

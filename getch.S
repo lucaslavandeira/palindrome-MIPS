@@ -43,7 +43,7 @@
 ##------------------------------------------------------------------------------
 .MACRO dereferencePosTot0
     lw a3, POSITION_POS($fp)  ## Redundante pero provisorio
-    la t0, a3  # # cargo el valor de la direccion de memoria de 'pos' en t0
+    la t0, 0(a3)  # # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0)  ## desreferencio el puntero y guardo el valor en t0
 .ENDM
 ##------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ findValue:
 
     ## *pos++;
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
+    la t0, 0(a3) # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
     addu t0, t0, 1  # incremento el valor de la posicion
     sw t0, 0(a3)  # guardo el incremento en la direccion de memoria de 'pos'
@@ -136,7 +136,7 @@ readFile:
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     ## *pos = 0
     ##--------------------------------------------------------------------------
-    li t1, zero  # int received = 0
+    li t1, 0  # int received = 0
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
 while:
     ## Como el while contiene un 'and' si alguno es falso sale de la condicion
