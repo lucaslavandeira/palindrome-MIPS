@@ -41,11 +41,11 @@
 ##------------------------------------------------------------------------------
 ## MACROS DEFINITIONS
 ##------------------------------------------------------------------------------
-    .macro dereferencePosTot0
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    .end_macro
+.MACRO dereferencePosTot0
+    lw a3, POSITION_POS($fp)  ## Redundante pero provisorio
+    la t0, a3  # # cargo el valor de la direccion de memoria de 'pos' en t0
+    lw t0, 0(t0)  ## desreferencio el puntero y guardo el valor en t0
+.ENDM
 ##------------------------------------------------------------------------------
 ## CODIGO EQUIVALENTE EN C
 ##------------------------------------------------------------------------------
