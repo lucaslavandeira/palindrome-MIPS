@@ -39,6 +39,14 @@
 #define ERROR_VALUE -2
 #endif
 ##------------------------------------------------------------------------------
+## MACROS DEFINITIONS
+##------------------------------------------------------------------------------
+    .macro dereferencePosTot0
+    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
+    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
+    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    .end_macro
+##------------------------------------------------------------------------------
 ## CODIGO EQUIVALENTE EN C
 ##------------------------------------------------------------------------------
 ##int getch(int fd, char* buffer, size_t iBytes, size_t* pos) {
@@ -84,9 +92,7 @@ getch:
     ##--------------------------------------------------------------------------
 
     ## verifico si el buffer esta vacio a ya lo lei todo
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de la posicion en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    dereferencePosTot0  # t0 = *pos
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
     ## t0 = *pos;
     ## a2 = iBytes;
@@ -97,10 +103,7 @@ getch:
     bne t0, t1, readFile  # if (*pos != -1) readFile
 
 findValue:
-
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de la 'pos' en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    dereferencePosTot0  # t0 = *pos
 
     ## int c = buffer[+pos];
     lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
@@ -128,9 +131,7 @@ readFile:
     ## de memoria de pos a apunte a ese nuevo valor
     ##--------------------------------------------------------------------------
     ## *pos = 0
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    dereferencePosTot0  # t0 = *pos
     addu t0, zero, 0  # le guardo el valor 0  a 'pos'
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     ## *pos = 0
@@ -149,9 +150,7 @@ while:
     ## Aca pregunto si la segunda condicion del while es falsa. De serlo sigo
     ## con la parte de leer el siguiente caracter del buffer, es decir, con la
     ## parte del codigo llamada findValue
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    dereferencePosTot0  # t0 = *pos
     addu t3, zero, -1  # Guardo -1 en t3
     beq t0, t3, findValue  # if (*pos == 1) sale del while
 
@@ -193,13 +192,11 @@ END_READING:  # *pos = -1
     ## buclear hasta recorrer iBytes sino que detecto el EOF y el buffer no
     ## va a estar lleno
 
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    dereferencePosTot0  # t0 = *pos
     addu t0, zero, -1  # *pos = -1 significa no leer mas
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     j findValue  # salto a buscar el siguiente caracter
 ERROR:
     addu v0, zero, ERROR_VALUE  # Guardo en v0 el valor ERROR_VALUE
     j return
-
+##------------------------------------------------------------------------------

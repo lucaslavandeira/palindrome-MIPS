@@ -43,6 +43,14 @@
 #define EOF -1
 #endif
 ##------------------------------------------------------------------------------
+## MACROS DEFINITIONS
+##------------------------------------------------------------------------------
+    .macro dereferencePosTot0
+    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
+    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
+    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    .end_macro
+##------------------------------------------------------------------------------
 ## CODIGO EQUIVALENTE EN C
 ##------------------------------------------------------------------------------
 ##int putch(int fd, char* buffer, size_t oBytes, size_t* pos, char c) {
@@ -90,10 +98,7 @@ putch:
     ##--------------------------------------------------------------------------
 
     ##if (*pos == oBytes || c == EOF)
-
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de la posicion en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    dereferencePosTot0  # t0 = *pos
     ## t0 = *pos
     lw a2, OBYTES_POS($fp)  # Redundante pero provisorio
     ## a2 = oBytes
@@ -106,10 +111,7 @@ putch:
 ## WRITE VALUE
 ##------------------------------------------------------------------------------
 writeValue:
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de la 'pos' en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    ## t0 = *pos
+    dereferencePosTot0  # t0 = *pos
 
     ## buffer[+pos];
     lw a1, BUFFER_POS($fp)  # Redundante pero provisorio a1 = buffer
@@ -144,9 +146,7 @@ writeFile:
     ## Aca desreferencio pos, y le guardo cero, y luego hago que la posicion
     ## de memoria de pos a apunte a ese nuevo valor
     ## *pos = 0
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    dereferencePosTot0  # t0 = *pos
     addu t0, zero, 0  # le guardo el valor 0  a 'pos'
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     ## *pos = 0
