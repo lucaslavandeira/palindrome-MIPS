@@ -4,35 +4,35 @@
 ## DEFINITIONS
 ##------------------------------------------------------------------------------
 #ifndef STACK_FRAME_SIZE
-#define STACK_FRAME_SIZE 64
+#define STACK_FRAME_SIZE 40
 #endif
 
 #ifndef RETURN_POINTER_POS
-#define RETURN_POINTER_POS 40
+#define RETURN_POINTER_POS 36
 #endif
 
 #ifndef GLOBAL_POINTER_POS
-#define GLOBAL_POINTER_POS 36
+#define GLOBAL_POINTER_POS 32
 #endif
 
 #ifndef FRAME_POINTER_POS
-#define FRAME_POINTER_POS 32
-#endif
-
-#ifndef FD_POS
-#define FD_POS 48
-#endif
-
-#ifndef BUFFER_POS
-#define BUFFER_POS 52
-#endif
-
-#ifndef IBYTES_POS
-#define IBYTES_POS 56
+#define FRAME_POINTER_POS 28
 #endif
 
 #ifndef POSITION_POS
-#define POSITION_POS 60
+#define POSITION_POS 52
+#endif
+
+#ifndef IBYTES_POS
+#define IBYTES_POS 48
+#endif
+
+#ifndef BUFFER_POS
+#define BUFFER_POS 44
+#endif
+
+#ifndef FD_POS
+#define FD_POS 40
 #endif
 
 #ifndef ERROR_VALUE
