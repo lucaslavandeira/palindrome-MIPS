@@ -24,7 +24,7 @@
 #endif
 
 #ifndef IBYTES_POS
-#define IBYTES STACK_FRAME_SIZE+4
+#define IBYTES_POS STACK_FRAME_SIZE+4
 #endif
 
 #ifndef OFD_POS
@@ -32,7 +32,7 @@
 #endif
 
 #ifndef OBYTES_POS
-#define OBYTES STACK_FRAME_SIZE+12
+#define OBYTES_POS STACK_FRAME_SIZE+12
 #endif
 ##------------------------------------------------------------------------------
 ## CODIGO EQUIVALENTE EN C

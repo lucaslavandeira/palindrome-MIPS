@@ -28,7 +28,7 @@
 #endif
 
 #ifndef OBYTES_POS
-#define OBYTES 60
+#define OBYTES_POS 60
 #endif
 
 #ifndef POSITION_POS
