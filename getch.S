@@ -4,7 +4,7 @@
 ## DEFINITIONS
 ##------------------------------------------------------------------------------
 #ifndef STACK_FRAME_SIZE
-#define STACK_FRAME_SIZE 48
+#define STACK_FRAME_SIZE 68
 #endif
 
 #ifndef RETURN_POINTER_POS
@@ -20,7 +20,7 @@
 #endif
 
 #ifndef FD_POS
-#define FD_POS STACK_FRAME_SIZE
+#define FD_POS 48
 #endif
 
 #ifndef BUFFER_POS
@@ -28,7 +28,7 @@
 #endif
 
 #ifndef IBYTES_POS
-#define IBYTES_POS 60
+#define IBYTES_POS 56
 #endif
 
 #ifndef POSITION_POS
@@ -38,25 +38,29 @@
 #ifndef ERROR_VALUE
 #define ERROR_VALUE -2
 #endif
+
+#ifndef EOF
+#define EOF -1
+#endif
 ##------------------------------------------------------------------------------
 ## MACROS DEFINITIONS
 ##------------------------------------------------------------------------------
 .MACRO dereferencePosTot0
     lw a3, POSITION_POS($fp)  ## Redundante pero provisorio
-    la t0, 0(a3)  # # cargo el valor de la direccion de memoria de 'pos' en t0
-    lw t0, 0(t0)  ## desreferencio el puntero y guardo el valor en t0
+    lw t0, 0(a3)  ## desreferencio el puntero y guardo el valor en t0
 .ENDM
 ##------------------------------------------------------------------------------
 ## CODIGO EQUIVALENTE EN C
 ##------------------------------------------------------------------------------
-##int getch(int fd, char* buffer, size_t iBytes, size_t* pos) {
-    ##if (*pos == iBytes || *pos == 0 || pos != -1) {
+##int getch(int fd, char* buffer, size_t iBytes, ssize_t* pos) {
+    ##if ((*pos == iBytes || *pos == 0)) {
         ##*pos = 0
-        ##int received = 0, bytesRead;
-        ##while (received < iBytes && pos != -1) {
+        ##int received = 0;
+        ##ssize_t bytesRead = -1;
+        ##while (received < iBytes && bytesRead != 0) {
             ##bytesRead = read(fd, buffer+received, iBytes-received);
-            ##if (bytesRead == -1) return -1;
-            ##if (bytesRead == 0) *pos = -1;
+            ##if (bytesRead == -1) return -2;
+            ##if (bytesRead == 0) buffer[received] = EOF;
             ##received += bytesRead;
         ##}
     ##}
@@ -92,28 +96,23 @@ getch:
     ##--------------------------------------------------------------------------
 
     ## verifico si el buffer esta vacio a ya lo lei todo
+    ## if (*pos == iBytes || *pos == 0)
     dereferencePosTot0  # t0 = *pos
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
     ## t0 = *pos;
     ## a2 = iBytes;
     beq a2, t0, readFile  # if (*pos == iBytes) readFile
     beq t0, zero, readFile  # if (*pos == 0) readFile
-    addu t1, zero, -1;  # Guardo -1 en t0
-    ## t1 = -1;
-    bne t0, t1, readFile  # if (*pos != -1) readFile
 
 findValue:
     dereferencePosTot0  # t0 = *pos
-
     ## int c = buffer[+pos];
     lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
-    addu a1, a1, t0  # cargo en a1 la dir de mem de lo ocupado en Buffer[pos]
-    lb v0, 0(a1)  # guardo en vo lo que esta guardado en buffer[pos]
+    addu a1, a1, t0  # a1 = Buffer+pos
+    lb v0, 0(a1)  # v0 = *(Buffer+pos)
 
     ## *pos++;
-    lw a3, POSITION_POS($fp)  # Redundante pero provisorio
-    la t0, 0(a3) # cargo el valor de la direccion de memoria de 'pos' en t0
-    lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
+    dereferencePosTot0  # t0 = *pos
     addu t0, t0, 1  # incremento el valor de la posicion
     sw t0, 0(a3)  # guardo el incremento en la direccion de memoria de 'pos'
 
@@ -136,9 +135,11 @@ readFile:
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     ## *pos = 0
     ##--------------------------------------------------------------------------
-    li t1, 0  # int received = 0
+    li t1, 0  # int received = 0 , t1 = received
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
+    li v0, -1  ## bytesRead = -1
 while:
+    ## while (received < iBytes && bytesRead != 0)
     ## Como el while contiene un 'and' si alguno es falso sale de la condicion
 
     ## Aca pregunto si la primera condicion del while es falsa. De serlo sigo
@@ -150,9 +151,7 @@ while:
     ## Aca pregunto si la segunda condicion del while es falsa. De serlo sigo
     ## con la parte de leer el siguiente caracter del buffer, es decir, con la
     ## parte del codigo llamada findValue
-    dereferencePosTot0  # t0 = *pos
-    addu t3, zero, -1  # Guardo -1 en t3
-    beq t0, t3, findValue  # if (*pos == 1) sale del while
+    beq v0, zero, findValue  # if (bytesRead == 0) sale del while
 
     ## Aca llamo al SYSCALL del read
     li v0, SYS_read
@@ -160,6 +159,7 @@ while:
     lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
     addu a1, a1, t1  # buffer+received
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
+    subu a2, a2, t1  ## iBytes-received
     SYSCALL
     ##--------------------------------------------------------------------------
     ## VERIFICACION DE ERRORES DE READ
@@ -173,7 +173,7 @@ while:
 
     ## read retorna su valor en el registro v0. Entonces si v0 es 0 quiere
     ## decir que detecto el EOF
-    lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
+    ##if (bytesRead == 0) buffer[received] = EOF;
     beq v0, zero, END_READING
 
     ## Actualizo la posicion del buffer para que pueda seguir leyendo sobre
@@ -184,17 +184,14 @@ while:
     ##--------------------------------------------------------------------------
     j while
 
-END_READING:  # *pos = -1
-    ## Aca hago que la variable pos valga -1ya que significa que no debo ler mas
-    ## porque lo mas probable es que haya pedido iBytes al sistema operativo
-    ## y me haya delvuelto menos porque llego al EOF. Es decir solo restaban
-    ## leer menos que iBytes del archivo de entrada y entonces el loop no va a
-    ## buclear hasta recorrer iBytes sino que detecto el EOF y el buffer no
-    ## va a estar lleno
-
-    dereferencePosTot0  # t0 = *pos
-    addu t0, zero, -1  # *pos = -1 significa no leer mas
-    sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
+END_READING:  ## buffer[received] = EOF; - t1 = received
+    lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
+    addu a1, a1, t1  ## a1 = buffer+received
+    ## t0 = *(buffer+received)
+    lw t0, 0(a1)  ## desreferencio el puntero y guardo el valor en t0
+    addu t0, zero, EOF
+    sw t0, 0(a1)  ## buffer[received] = EOF;
+    addu t1, t1, v0  #  received += bytesRead;
     j findValue  # salto a buscar el siguiente caracter
 ERROR:
     addu v0, zero, ERROR_VALUE  # Guardo en v0 el valor ERROR_VALUE
