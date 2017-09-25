@@ -28,7 +28,7 @@
 #endif
 
 #ifndef IBYTES_POS
-#define IBYTES 60
+#define IBYTES_POS 60
 #endif
 
 #ifndef POSITION_POS
