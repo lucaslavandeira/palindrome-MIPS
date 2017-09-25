@@ -79,7 +79,7 @@ putch:
     ##--------------------------------------------------------------------------
     ## Inicializacion del stack frame
     ##--------------------------------------------------------------------------
-    .frame $fp, 10, ra
+    .frame $fp, STACK_FRAME_SIZE, ra
     .set	noreorder
     .cpload t9
     .set	reorder
