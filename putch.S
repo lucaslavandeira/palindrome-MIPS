@@ -4,7 +4,7 @@
 ## DEFINITIONS
 ##------------------------------------------------------------------------------
 #ifndef STACK_FRAME_SIZE
-#define STACK_FRAME_SIZE 48
+#define STACK_FRAME_SIZE 68
 #endif
 
 #ifndef RETURN_POINTER_POS
@@ -12,15 +12,15 @@
 #endif
 
 #ifndef GLOBAL_POINTER_POS
-#define GLOBAL_POINTER_POS 44
+#define GLOBAL_POINTER_POS 36
 #endif
 
 #ifndef FRAME_POINTER_POS
-#define FRAME_POINTER_POS 44
+#define FRAME_POINTER_POS 32
 #endif
 
 #ifndef FD_POS
-#define FD_POS STACK_FRAME_SIZE
+#define FD_POS 48
 #endif
 
 #ifndef BUFFER_POS
@@ -28,7 +28,7 @@
 #endif
 
 #ifndef OBYTES_POS
-#define OBYTES_POS 60
+#define OBYTES_POS 56
 #endif
 
 #ifndef POSITION_POS

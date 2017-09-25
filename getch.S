@@ -4,7 +4,7 @@
 ## DEFINITIONS
 ##------------------------------------------------------------------------------
 #ifndef STACK_FRAME_SIZE
-#define STACK_FRAME_SIZE 68
+#define STACK_FRAME_SIZE 64
 #endif
 
 #ifndef RETURN_POINTER_POS
