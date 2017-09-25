@@ -48,9 +48,9 @@
 ##int putch(int fd, char* buffer, size_t oBytes, size_t* pos, char c) {
     ##if (*pos == oBytes || c == EOF) {
         ##*pos = 0
-        #int sent = 0, bytesSent;
+        ##int sent = 0, bytesSent;
         ##while (sent < oBytes) {
-            #bytesSent = write(fd, buffer+sent, oBytes-sent);
+            ##bytesSent = write(fd, buffer+sent, oBytes-sent);
             ##if (bytesSent == -1) return -1;
             ##sent += bytesSent;
         ##}
@@ -99,7 +99,7 @@ putch:
     ## a2 = oBytes
     beq a2, t0, writeFile  # if (*pos == oBytes) writeFile
     lw a4, CHAR_POS($fp)   # Redundante pero provisorio a4 = c
-    li t0, ZERO, EOF
+    li t0, zero, EOF
     beq a4, t0, writeFile  # if (*pos == 0) writeFile
 
 ##------------------------------------------------------------------------------
@@ -147,11 +147,11 @@ writeFile:
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    addu t0, ZERO, 0  # le guardo el valor 0  a 'pos'
+    addu t0, zero, 0  # le guardo el valor 0  a 'pos'
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     ## *pos = 0
     
-    li t1, ZERO  # int sent = 0
+    li t1, zero  # int sent = 0
     lw a2, OBYTES_POS($fp)  # Redundante pero provisorio  a2 = oBytes
 while:
     ## Aca pregunto si la condicion del while es falsa. De serlo sigo
@@ -171,11 +171,11 @@ while:
     ##--------------------------------------------------------------------------
     ## VERIFICACION DE ERRORES DE WRITE
     ##--------------------------------------------------------------------------
-    bne a3, ZERO, ERROR  # si a3 !=0 retorna error
+    bne a3, zero, ERROR  # si a3 !=0 retorna error
 
     ## write retorna su valor en el registro v0. Entonces si v0 es -1 quiere
     ## decir que hubo un error.
-    addu t3, ZERO, -1  # t3 = -1
+    addu t3, zero, -1  # t3 = -1
     beq v0, t3, ERROR  # si vo == -1 retorna error
 
     ## Actualizo la posicion del buffer para que pueda seguir escribiendo sobre

@@ -1,5 +1,8 @@
-#include <sys/syscall.h>
 #include <mips/regdef.h>
+#include <sys/syscall.h>
+##------------------------------------------------------------------------------
+## DEFINITIONS
+##------------------------------------------------------------------------------
 #ifndef STACK_FRAME_SIZE
 #define STACK_FRAME_SIZE 48
 #endif
@@ -31,13 +34,17 @@
 #ifndef POSITION_POS
 #define POSITION_POS 60
 #endif
+
+#ifndef ERROR_VALUE
+#define ERROR_VALUE -2
+#endif
 ##------------------------------------------------------------------------------
 ## CODIGO EQUIVALENTE EN C
 ##------------------------------------------------------------------------------
 ##int getch(int fd, char* buffer, size_t iBytes, size_t* pos) {
     ##if (*pos == iBytes || *pos == 0 || pos != -1) {
         ##*pos = 0
-        #int received = 0, bytesRead;
+        ##int received = 0, bytesRead;
         ##while (received < iBytes && pos != -1) {
             ##bytesRead = read(fd, buffer+received, iBytes-received);
             ##if (bytesRead == -1) return -1;
@@ -59,7 +66,7 @@ getch:
     ##--------------------------------------------------------------------------
     ## Inicializacion del stack frame
     ##--------------------------------------------------------------------------
-    frame $fp, STACK_FRAME_SIZE, ra
+    .frame $fp, STACK_FRAME_SIZE, ra
     .set	noreorder
     .cpload t9
     .set	reorder
@@ -84,8 +91,8 @@ getch:
     ## t0 = *pos;
     ## a2 = iBytes;
     beq a2, t0, readFile  # if (*pos == iBytes) readFile
-    beq t0, ZERO, readFile  # if (*pos == 0) readFile
-    addu t1, ZERO, -1;  # Guardo -1 en t0
+    beq t0, zero, readFile  # if (*pos == 0) readFile
+    addu t1, zero, -1;  # Guardo -1 en t0
     ## t1 = -1;
     bne t0, t1, readFile  # if (*pos != -1) readFile
 
@@ -124,11 +131,11 @@ readFile:
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    addu t0, ZERO, 0  # le guardo el valor 0  a 'pos'
+    addu t0, zero, 0  # le guardo el valor 0  a 'pos'
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     ## *pos = 0
     ##--------------------------------------------------------------------------
-    li t1, ZERO  # int received = 0
+    li t1, zero  # int received = 0
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
 while:
     ## Como el while contiene un 'and' si alguno es falso sale de la condicion
@@ -145,7 +152,7 @@ while:
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    adu t3, ZERO, -1  # Guardo -1 en t3
+    addu t3, zero, -1  # Guardo -1 en t3
     beq t0, t3, findValue  # if (*pos == 1) sale del while
 
     ## Aca llamo al SYSCALL del read
@@ -158,17 +165,17 @@ while:
     ##--------------------------------------------------------------------------
     ## VERIFICACION DE ERRORES DE READ
     ##--------------------------------------------------------------------------
-    bne a3, ZERO, ERROR  # si a3 !=0 retorna error
+    bne a3, zero, ERROR  # si a3 !=0 retorna error
 
     ## read retorna su valor en el registro v0. Entonces si v0 es -1 quiere
     ## decir que hubo un error.
-    adu t3, ZERO, -1  # Guardo -1 en t3
+    addu t3, zero, -1  # Guardo -1 en t3
     beq v0, t3, ERROR  # si vo == -1 retorna error
 
     ## read retorna su valor en el registro v0. Entonces si v0 es 0 quiere
     ## decir que detecto el EOF
     lw a2, IBYTES_POS($fp)  # Redundante pero provisorio
-    beq v0, ZERO, END_READING
+    beq v0, zero, END_READING
 
     ## Actualizo la posicion del buffer para que pueda seguir leyendo sobre
     ## el en la parte restante
@@ -189,10 +196,10 @@ END_READING:  # *pos = -1
     lw a3, POSITION_POS($fp)  # Redundante pero provisorio
     la t0, a3 # cargo el valor de la direccion de memoria de 'pos' en t0
     lw t0, 0(t0) # desreferencio el puntero y guardo el valor en t0
-    addu to, ZERO, -1  # *pos = -1 significa no leer mas
+    addu t0, zero, -1  # *pos = -1 significa no leer mas
     sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
     j findValue  # salto a buscar el siguiente caracter
 ERROR:
-    addu v0, ZERO, -1  # Guardo en v0 el valor -1 que representa error
+    addu v0, zero, ERROR_VALUE  # Guardo en v0 el valor ERROR_VALUE
     j return
 
