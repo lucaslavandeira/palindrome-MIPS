@@ -4,19 +4,27 @@
 ## DEFINITIONS
 ##------------------------------------------------------------------------------
 #ifndef SF_SIZE
-#define SF_SIZE 64
+#define SF_SIZE 72
 #endif
 
 #ifndef RA_POS
-#define RA_POS 56
+#define RA_POS 68
 #endif
 
 #ifndef GP_POS
-#define GP_POS 52
+#define GP_POS 64
 #endif
 
 #ifndef FP_POS
-#define FP_POS 48
+#define FP_POS 60
+#endif
+
+#ifndef CARACTER_POS
+#define CARACTER_POS 48
+#endif
+
+#ifndef CURSOR_POS
+#define CURSOR_POS 44
 #endif
 
 #ifndef IPOS
@@ -44,19 +52,19 @@
 #endif
 
 #ifndef IFD_POS
-#define IFD_POS 64
+#define IFD_POS 72
 #endif
 
 #ifndef IBYTES_POS
-#define IBYTES_POS 68
+#define IBYTES_POS 76
 #endif
 
 #ifndef OFD_POS
-#define OFD_POS 72
+#define OFD_POS 80
 #endif
 
 #ifndef OBYTES_POS
-#define OBYTES_POS 76
+#define OBYTES_POS 84
 #endif
 
 #ifndef INITIAL_SIZE
@@ -65,6 +73,10 @@
 
 #ifndef SIZE_OF_CHAR
 #define SIZE_OF_CHAR 1
+#endif
+
+#ifndef EOF
+#define EOF -1
 #endif
 ##------------------------------------------------------------------------------
 ## MACROS DEFINITIONS
@@ -82,9 +94,16 @@
     ##char* word = (char*) mymalloc(sizeof(char) * wordLen);
     ##if (word == NULL) return ERROR;
     ##char* iBuffer = (char*) mymalloc(sizeof(char) * ibytes);
-    ##if (iBuffer == NULL) return ERROR;
+    ##if (iBuffer == NULL) {
+        ##free(word);
+        ##return ERROR;
+    }
     ##char* oBuffer = (char*) mymalloc(sizeof(char) * obytes);
-    ##if (oBuffer == NULL) return ERROR;
+    ##if (oBuffer == NULL) {
+        ##free(word);
+        ##free(iBuffer);
+        ##return ERROR;
+    }
 
     ##memset(word, 0, word_len);
     ##size_t iPos = 0;
@@ -191,6 +210,7 @@ palindrome:
     addu t0, zero, 0  ## guardo cero en t0
     sw t0, IPOS($fp)  ## IPos = 0
     sw t0, OPOS($fp)  ## IPos = 0
+    sw t0, CURSOR_POS($fp)  ## size_t cur = 0;
 
     ##int c = getch(ifd, iBuffer, ibytes, &iPos);
     lw a0, IFD($fp)  ## guardo en a0 el file descriptor de entrada
@@ -201,7 +221,47 @@ palindrome:
     jal ra, t9
     addu t0, zero, -2  ## t0 = -2
     beq v0, t0, return  ## if (c == -2) return ERROR
-    
+
+    sb v0, CARACTER_POS($fp)  ## guardo el caracter leido en la stack frame
+
+    ##while (c != EOF)
+    li t0, EOF
+    lb t1, CARACTER_POS($fp)  ## t1 = c
+    beq t1, t0, return  ## if (C == EOF) sale del while
+    ##--------------------------------------------------------------------------
+    ## if (belongsToSpace(c) && cur >= wordLen)
+    ##--------------------------------------------------------------------------
+    ## bool belongs = belongsToSpace(c);
+    lw a0, CARACTER_POS($fp)  ## t1 = c
+    la t9, belongsToSpace
+    jal ra, t9
+    ## true = 1; false = 0
+    li t0, 0  ## t0 = false
+    beq v0, t0, else  ## if (belongsToSpace(c) == false) sale del if
+    lw t0, CURSOR_POS($fp)  ## t0 = cur
+    lw t1, CONSTANT_POS($fp)  ## t1 = wordLen
+    subu t0, t0, t1  ## t0 = cur - wordLen
+    bltz t0, else   ## if (cur - wordLen < 0) sale del if
+    ##--------------------------------------------------------------------------
+    ##wordLen *= 2;
+    lw t1, CONSTANT_POS($fp)  ## t1 = wordLen
+    sll t1, t1, 1  ## t1 = wordLen*2
+    sw t1, CONSTANT_POS($fp)  ## wordLen *= 2
+    ##word = (char*) realloc(word, wordLen);
+    lw a0, WORD($fp)
+    lw a1, CONSTANT_POS($fp)
+    la t9, realloc
+    jal ra, t9
+    ## falta verificar el error, es decir, if (word == NULL)
+    ##word[cur++] = c;
+    lb t1, CARACTER_POS($fp)  ## t1 = c
+    addu t1, t1, 1  ## t1++
+    sw t1, CARACTER_POS($fp)  ## c++
+    lw t0, WORD($fp)
+    addu t0, t0, t1  ## t0 = word+cur
+    lb t1, CARACTER_POS($fp)  ## t1 = c
+    sb t1, 0(t0)  ##  *(word+cur) = c
+else:
 ##------------------------------------------------------------------------------
 ## RETURN
 ##------------------------------------------------------------------------------
