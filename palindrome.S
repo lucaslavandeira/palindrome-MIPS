@@ -4,19 +4,27 @@
 ## DEFINITIONS
 ##------------------------------------------------------------------------------
 #ifndef SF_SIZE
-#define SF_SIZE 56
+#define SF_SIZE 64
 #endif
 
 #ifndef RA_POS
-#define RA_POS 48
+#define RA_POS 56
 #endif
 
 #ifndef GP_POS
-#define GP_POS 44
+#define GP_POS 52
 #endif
 
 #ifndef FP_POS
-#define FP_POS 40
+#define FP_POS 48
+#endif
+
+#ifndef IPOS
+#define IPOS 40
+#endif
+
+#ifndef OPOS
+#define OPOS 36
 #endif
 
 #ifndef OBUFFER
@@ -36,19 +44,19 @@
 #endif
 
 #ifndef IFD_POS
-#define IFD_POS 56
+#define IFD_POS 64
 #endif
 
 #ifndef IBYTES_POS
-#define IBYTES_POS 60
+#define IBYTES_POS 68
 #endif
 
 #ifndef OFD_POS
-#define OFD_POS 64
+#define OFD_POS 72
 #endif
 
 #ifndef OBYTES_POS
-#define OBYTES_POS 68
+#define OBYTES_POS 76
 #endif
 
 #ifndef INITIAL_SIZE
@@ -80,8 +88,9 @@
 
     ##memset(word, 0, word_len);
     ##size_t iPos = 0;
+    ##size_t oPos = 0;
     ##int c = getch(ifd, iBuffer, ibytes, &iPos);
-    ##if (c == -1) {
+    ##if (c == -2) {
         ##free(word);
         ##free(iBuffer);
         ##free(oBuffer);
@@ -115,7 +124,7 @@
             ##cur = 0;
         ##}
         ##c = getch(ifd, word, ibytes, &iPos);
-        ##if (c == -1) {
+        ##if (c == -2) {
             ##free(word);
             ##free(iBuffer);
             ##free(oBuffer);
@@ -153,7 +162,7 @@ palindrome:
     sw a2, OFD_POS($fp)  # position actual de escritura del buffer
     sw a3, OBYTES_POS($fp)  # capacidad maxima del buffer
     ##--------------------------------------------------------------------------
-    ## Inicializacion del stack frame
+    ## FIN Inicializacion del stack frame
     ##--------------------------------------------------------------------------
     li t0, INITIAL_SIZE  ##size_t wordLen = 1024;
     sw t0, CONSTANT_POS($fp)  ## guardo wordLen en el stackFrame
@@ -178,6 +187,20 @@ palindrome:
     jal ra, t9
     ## falta verificar error en v0
     sw v0, OBUFFER($fp)  ## guardo el buffer en el stackFrame
+
+    addu t0, zero, 0  ## guardo cero en t0
+    sw t0, IPOS($fp)  ## IPos = 0
+    sw t0, OPOS($fp)  ## IPos = 0
+
+    ##int c = getch(ifd, iBuffer, ibytes, &iPos);
+    lw a0, IFD($fp)  ## guardo en a0 el file descriptor de entrada
+    lw a1, IBUFFER($fp)  ## guardo en a1 el buffer de entrada
+    lw a2, IBYTES($fp)  ## guardo en a2 el tamaño del buffer de entrada
+    la a3, IPOS  ## guardo en a3 la posicion de memoria de la pos de lectura
+    la t9, getch
+    jal ra, t9
+    addu t0, zero, -2  ## t0 = -2
+    beq v0, t0, return  ## if (c == -2) return ERROR
 ##------------------------------------------------------------------------------
 ## RETURN
 ##------------------------------------------------------------------------------
