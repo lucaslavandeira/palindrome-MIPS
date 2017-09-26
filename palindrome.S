@@ -81,10 +81,29 @@
 ##------------------------------------------------------------------------------
 ## MACROS DEFINITIONS
 ##------------------------------------------------------------------------------
-.MACRO callMalloc ($argument)
-    lw a0, $argument  ## cargo a0 con el parametro de la funcion malloc
-    la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
+.MACRO callGetch
+    ##int c = getch(ifd, iBuffer, ibytes, &iPos);
+    lw a0, IFD($fp)  ## guardo en a0 el file descriptor de entrada
+    lw a1, IBUFFER($fp)  ## guardo en a1 el buffer de entrada
+    lw a2, IBYTES($fp)  ## guardo en a2 el tamaño del buffer de entrada
+    la a3, IPOS  ## guardo en a3 la posicion de memoria de la pos de lectura
+    la t9, getch
     jal ra, t9
+    addu t0, zero, -2  ## t0 = -2
+    beq v0, t0, return  ## if (c == -2) return ERROR
+.ENDM
+
+.MACRO callPutch
+    ##int s = putch(ifd, iBuffer, ibytes, &iPos, char);
+    lw a0, IFD($fp)  ## guardo en a0 el file descriptor de entrada
+    lw a1, IBUFFER($fp)  ## guardo en a1 el buffer de entrada
+    lw a2, IBYTES($fp)  ## guardo en a2 el tamaño del buffer de entrada
+    la a3, IPOS  ## guardo en a3 la posicion de memoria de la pos de lectura
+    sw CARACTER_POS, 16($fp)  ## cargo la posicion de memoria
+    la t9, getch
+    jal ra, t9
+    addu t0, zero, -1  ## t0 = -1
+    beq v0, t0, return  ## if (s == -1) return ERROR
 .ENDM
 ##------------------------------------------------------------------------------
 ## CODIGO EQUIVALENTE EN C
@@ -212,15 +231,7 @@ palindrome:
     sw t0, OPOS($fp)  ## IPos = 0
     sw t0, CURSOR_POS($fp)  ## size_t cur = 0;
 
-    ##int c = getch(ifd, iBuffer, ibytes, &iPos);
-    lw a0, IFD($fp)  ## guardo en a0 el file descriptor de entrada
-    lw a1, IBUFFER($fp)  ## guardo en a1 el buffer de entrada
-    lw a2, IBYTES($fp)  ## guardo en a2 el tamaño del buffer de entrada
-    la a3, IPOS  ## guardo en a3 la posicion de memoria de la pos de lectura
-    la t9, getch
-    jal ra, t9
-    addu t0, zero, -2  ## t0 = -2
-    beq v0, t0, return  ## if (c == -2) return ERROR
+    callGetch
 
     sb v0, CARACTER_POS($fp)  ## guardo el caracter leido en la stack frame
 
@@ -261,7 +272,31 @@ palindrome:
     addu t0, t0, t1  ## t0 = word+cur
     lb t1, CARACTER_POS($fp)  ## t1 = c
     sb t1, 0(t0)  ##  *(word+cur) = c
+    j endWhile
 else:
+    ##if (isCapicua(word, cur))
+    lw a0, WORD($fp)
+    lw a1, CURSOR_POS($fp)
+    la t9, isCapicua
+    jal ra, t9
+    ## true = 1; false = 0
+    li t0, 0  ## t0 = false
+    beq v0, t0, afterIf  ## if (isCapicua(word, cur) == false) saltea el if
+    ##for (int i = 0; i < cur; i++)
+    li t0, zero  ## int i = 0
+    lw t1, CURSOR_POS($fp)  ## t1 = cur
+for:
+    subu t3, t0, t1  ## t3 = i - cur
+    bgez t3, afterIf  ## if i >= cur termino el for y salto a afterIf
+    calPutch
+    addu t0, t0, 1  ## i++
+    j for
+afterIf:
+    sw zero, CURSOR_POS($fp)  ##cur = 0;
+
+endWhile:
+    callGetch
+    j while
 ##------------------------------------------------------------------------------
 ## RETURN
 ##------------------------------------------------------------------------------
