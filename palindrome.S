@@ -91,6 +91,7 @@
     jal ra, t9
     addu t0, zero, -2  ## t0 = -2
     beq v0, t0, return  ## if (c == -2) return ERROR
+    sb v0, CARACTER_POS($fp)  ## guardo el caracter leido en la stack frame
 .ENDM
 
 .MACRO callPutch
@@ -149,7 +150,7 @@
             ##word[cur++] = c;
         ##} else {
             ##if (stdinCapicua(word, cur)) {
-                ##for (int i = 0; i < curr; i++) {
+                ##for (int i = 0; i < cur; i++) {
                     ##if (putch(ofd, oBuffer, obytes, &oPos, word[i]) == -1) {
                         ##free(word);
                         ##free(iBuffer);
@@ -230,11 +231,8 @@ palindrome:
     sw t0, IPOS($fp)  ## IPos = 0
     sw t0, OPOS($fp)  ## IPos = 0
     sw t0, CURSOR_POS($fp)  ## size_t cur = 0;
-
     callGetch
-
-    sb v0, CARACTER_POS($fp)  ## guardo el caracter leido en la stack frame
-
+while:
     ##while (c != EOF)
     li t0, EOF
     lb t1, CARACTER_POS($fp)  ## t1 = c
