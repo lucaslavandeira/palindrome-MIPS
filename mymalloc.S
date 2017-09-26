@@ -98,12 +98,12 @@ mymalloc:
 	# The actual allocation size goes right after the signature.
 	lw t0, 32(sp)
 	lw t1, 36(sp)
-	sw t1,  4(t0)
+	sw t1, 4(t0)
 
 	# Trailer information.
-	lw t0, 36(sp) # t0: actual allocation size.
-	lw t1, 32(sp) # t1: Pointer.
-	addu t1, t1, t0 # t1 now points to the trailing 4-byte area.
+	lw t0, 36(sp)  # t0: actual allocation size.
+	lw t1, 32(sp)  # t1: Pointer.
+	addu t1, t1, t0  # t1 now points to the trailing 4-byte area.
 	xor	t2, t0, MYMALLOC_SIGNATURE
 	sw	t2, -4(t1)
 
