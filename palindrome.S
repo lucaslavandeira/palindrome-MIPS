@@ -4,46 +4,50 @@
 ## DEFINITIONS
 ##------------------------------------------------------------------------------
 #ifndef SF_SIZE
-#define SF_SIZE 48
+#define SF_SIZE 40
 #endif
 
 #ifndef RA_POS
-#define RA_POS SF_SIZE-8
+#define RA_POS 36
 #endif
 
 #ifndef GP_POS
-#define GP_POS RA_POS-4
+#define GP_POS 32
 #endif
 
 #ifndef FP_POS
-#define FP_POS GP_POS-4
+#define FP_POS 28
 #endif
 
 #ifndef IFD_POS
-#define IFD_POS STACK_FRAME_SIZE
+#define IFD_POS 40
 #endif
 
 #ifndef IBYTES_POS
-#define IBYTES_POS STACK_FRAME_SIZE+4
+#define IBYTES_POS 44
 #endif
 
 #ifndef OFD_POS
-#define OFD_POS STACK_FRAME_SIZE+8
+#define OFD_POS 48
 #endif
 
 #ifndef OBYTES_POS
-#define OBYTES_POS STACK_FRAME_SIZE+12
+#define OBYTES_POS 52
+#endif
+
+#ifndef INITIAL_SIZE
+#define INITIAL_SIZE 1024
 #endif
 ##------------------------------------------------------------------------------
 ## CODIGO EQUIVALENTE EN C
 ##------------------------------------------------------------------------------
 ##int palindrome(int ifd, size_t ibytes, int ofd, size_t obytes) {
     ##size_t wordLen = 1024;
-    ##char* word = (char*) malloc(sizeof(char) * wordLen);
+    ##char* word = (char*) mymalloc(sizeof(char) * wordLen);
     ##if (word == NULL) return ERROR;
-    ##char* iBuffer = (char*) malloc(sizeof(char) * ibytes);
+    ##char* iBuffer = (char*) mymalloc(sizeof(char) * ibytes);
     ##if (iBuffer == NULL) return ERROR;
-    ##char* oBuffer = (char*) malloc(sizeof(char) * obytes);
+    ##char* oBuffer = (char*) mymalloc(sizeof(char) * obytes);
     ##if (oBuffer == NULL) return ERROR;
 
     ##memset(word, 0, word_len);
@@ -97,4 +101,39 @@
 ##}
 ##------------------------------------------------------------------------------
 ## CODIGO EN MIPS
+##------------------------------------------------------------------------------
+text
+    .abicalls
+    .align 2
+    .globl palindrome
+    .ent palindrome
+palindrome:
+    ##--------------------------------------------------------------------------
+    ## Inicializacion del stack frame
+    ##--------------------------------------------------------------------------
+    .frame $fp, SF_SIZE, ra
+    .set	noreorder
+    .cpload t9
+    .set	reorder
+    subu sp, sp, SF_SIZE
+    .cprestore GP_POS
+    sw $fp, FP_POS(sp)
+    sw ra, RA_POS(sp)
+    move $fp, sp
+    sw a0, IFD_POS($fp)  # file descriptor
+    sw a1, IBYTES_POS($fp)  # buffer
+    sw a2, OFD_POS($fp)  # position actual de escritura del buffer
+    sw a3, OBYTES_POS($fp)  # capacidad maxima del buffer
+    ##--------------------------------------------------------------------------
+    ## Inicializacion del stack frame
+    ##--------------------------------------------------------------------------
+
+return:
+    lw gp, GP_POS(sp)
+    lw $fp, FP_POS(sp)
+    lw ra, RA_POS(sp)
+    addu sp, sp, SF_SIZE
+    jr ra
+    .end palindrome
+    .size palindrome,.-palindrome
 ##------------------------------------------------------------------------------
