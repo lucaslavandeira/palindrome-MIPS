@@ -28,7 +28,7 @@
 #endif
 
 #ifndef FOR_COUNTER_POS
-#define FOR_COUNTER_POSS 28
+#define FOR_COUNTER_POS 28
 #endif
 
 #ifndef FIRST_CARACTER_POS

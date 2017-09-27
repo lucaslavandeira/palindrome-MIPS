@@ -83,9 +83,9 @@
 ##------------------------------------------------------------------------------
 .MACRO callGetch
     ##int c = getch(ifd, iBuffer, ibytes, &iPos);
-    lw a0, IFD($fp)  ## guardo en a0 el file descriptor de entrada
+    lw a0, IFD_POS($fp)  ## guardo en a0 el file descriptor de entrada
     lw a1, IBUFFER($fp)  ## guardo en a1 el buffer de entrada
-    lw a2, IBYTES($fp)  ## guardo en a2 el tamaño del buffer de entrada
+    lw a2, IBYTES_POS($fp)  ## guardo en a2 el tamaño del buffer de entrada
     lw t0, IPOS($fp)
     addu t0, t0, $fp
     move a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
@@ -98,9 +98,9 @@
 
 .MACRO callPutch
     ##int s = putch(ifd, iBuffer, ibytes, &iPos, char);
-    lw a0, IFD($fp)  ## guardo en a0 el file descriptor de entrada
+    lw a0, IFD_POS($fp)  ## guardo en a0 el file descriptor de entrada
     lw a1, IBUFFER($fp)  ## guardo en a1 el buffer de entrada
-    lw a2, IBYTES($fp)  ## guardo en a2 el tamaño del buffer de entrada
+    lw a2, IBYTES_POS($fp)  ## guardo en a2 el tamaño del buffer de entrada
     lw t0, IPOS($fp)
     addu t0, t0, $fp
     move a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
