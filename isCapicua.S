@@ -19,9 +19,16 @@
 #define FP_POS 24
 #endif
 
-#ifndef CARACTER_POS
-#define CARACTER_POS 40
+#ifndef BUFFER_POS
+#define BUFFER_POS 40
 #endif
+
+#ifndef LEN_POS
+#define LEN_POS 44
+#endif
+##------------------------------------------------------------------------------
+## MACROS
+##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 ## CODIGO EQUIVALENTE EN C
 ##------------------------------------------------------------------------------
@@ -30,12 +37,13 @@
 ## Del 48 al 57 estan los numeros de 0-9
 ## '-' es 45
 ## '_' es 95
-##bool belongsToSpace(char c) {
-    ## if (c >= 97 && c <= 122) return true;
-    ## if (c >= 65 && c <= 90) return true;
-    ## if (c >= 48 && c <= 57) return true;
-    ## if (c == 45 || c == 95) return true;
-    ## return false;
+##int stdinCapicua(const char* word, size_t len) {
+    ## for (int i = 0; i < len; i++) {
+        ##if (tolower(word[i) != tolower(word[len - i - 1])) {
+                ##return false;
+        ##}
+    ##}
+    ##return true;
 ##}
 ##------------------------------------------------------------------------------
 ## CODIGO EN MIPS
@@ -58,56 +66,38 @@ belongsToSpace:
     sw $fp, FP_POS(sp)
     sw ra, RA_POS(sp)
     move $fp, sp
-    sw a0, CARACTER_POS($fp)
+    sw a0, BUFFER_POS($fp)
+    sw a1, LEN_POS($fp)
     ##--------------------------------------------------------------------------
     ## FIN INICIALIZACION DEL STACK FRAME
     ##--------------------------------------------------------------------------
-    ## if (c >= 97 && c <= 122) return true;
-    lw a0, CARACTER_POS($fp)  ## a0 = c
-    li t0, 97
-    subu t0, a0, t0  ## t0 = c - 97
-    bltz t0, uppercaseIf  ## if (c - 97 < 0) sale del if
-    li t0, 122
-    subu t0, a0, t0  ## t0 = c - 122
-    bgtz t0, uppercaseIf  ## if (c - 122 > 0) sale del if
-    li v0, 1  ## return true
-    j return
-uppercaseIf:
+    li t0, zero  ## int i = 0
+    lw a0, BUFFER_POS($fp)
+    lw a1, LEN_POS($fp)
+    ## for (int i = 0; i < len; i++)
+for:
+    subu t3, t0, a1  ## t3 = i - len
+    bgez t3, returnTrue  ## if i >= len termino el for
+
+    ##if (tolower(word[i]) != tolower(word[len-i-1])) return false
     ## if (c >= 65 && c <= 90) return true;
-    lw a0, CARACTER_POS($fp)  ## a0 = c
-    li t0, 65
-    subu t0, a0, t0  ## t0 = c - 65
-    bltz t0, numbersIf  ## if (c - 65 < 0) sale del if
-    li t0, 90
-    subu t0, a0, t0  ## t0 = c - 65
-    bgtz t0, numbersIf  ## if (c - 65 > 0) sale del if
-    li v0, 1  ## return true
-    j return
-numbersIf:
-    ## if (c >= 48 && c <= 57) return true;
-    lw a0, CARACTER_POS($fp)  ## a0 = c
-    li t0, 48
-    subu t0, a0, t0  ## t0 = c - 48
-    bltz t0, scriptIf  ## if (c - 48 < 0) sale del if
-    li t0, 57
-    subu t0, a0, t0  ## t0 = c - 57
-    bgtz t0, scriptIf  ## if (c - 57 > 0) sale del if
-    li v0, 1  ## return true
-    j return
-scriptIf:
-    ## if (c == 45 || c == 95) return true
-    lw a0, CARACTER_POS($fp)  ## a0 = c
-    li t0, 45
-    beq a0, t0, returnTrue  ## if (c == 45)
-    li t0, 95
-    beq a0, t0, returnTrue  ## if (c == 95)
+    
+    addu t1, a0, t0  ##  t1 = buffer + i
+    lw t1, 0(t1)  ## t1 = *(buffer + i)
 
-    ## return false
-    li v0, 0  ## False = 0
-    j return
+    subu t2, a1, t0  ##  t2 = len -i
+    subu t2, t2, 1  ##  t2 = len - i - 1
+    addu t2, a0, t2  ##  t2 = buffer + len - i - 1
+    lw t2, 0(t2)  ## t2 = *(buffer + len - i - 1)
+    bne t1, t2, returnFalse
 
+    addu t0, t0, 1  ## i++
+    j for
 returnTrue:
      li v0, 1  ## True = 1
+     j return
+returnFalse:
+     li v0, 0  ## False = 0
 ##------------------------------------------------------------------------------
 ## RETURN
 ##------------------------------------------------------------------------------
