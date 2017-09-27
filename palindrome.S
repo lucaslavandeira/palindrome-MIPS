@@ -88,7 +88,7 @@
     lw a2, IBYTES($fp)  ## guardo en a2 el tamaño del buffer de entrada
     lw t0, IPOS($fp)
     addu t0, t0, $fp
-    lw a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
+    move a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
     la t9, getch
     jal ra, t9
     addu t0, zero, -2  ## t0 = -2
@@ -103,9 +103,10 @@
     lw a2, IBYTES($fp)  ## guardo en a2 el tamaño del buffer de entrada
     lw t0, IPOS($fp)
     addu t0, t0, $fp
-    lw a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
-    sw CARACTER_POS, 16($fp)  ## cargo la posicion de memoria
-    la t9, getch
+    move a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
+    lw t0, CARACTER_POS($fp)
+    sw t0, 16($fp)  ## cargo la posicion de memoria
+    la t9, putch
     jal ra, t9
     addu t0, zero, -1  ## t0 = -1
     beq v0, t0, return  ## if (s == -1) return ERROR
@@ -121,13 +122,13 @@
     ##if (iBuffer == NULL) {
         ##free(word);
         ##return ERROR;
-    }
+    ##}
     ##char* oBuffer = (char*) mymalloc(sizeof(char) * obytes);
     ##if (oBuffer == NULL) {
         ##free(word);
         ##free(iBuffer);
         ##return ERROR;
-    }
+    ##}
 
     ##memset(word, 0, word_len);
     ##size_t iPos = 0;
@@ -182,7 +183,7 @@
 ##------------------------------------------------------------------------------
 ## CODIGO EN MIPS
 ##------------------------------------------------------------------------------
-text
+    .text
     .abicalls
     .align 2
     .globl palindrome
@@ -285,12 +286,12 @@ else:
     li t0, 0  ## t0 = false
     beq v0, t0, afterIf  ## if (isCapicua(word, cur) == false) saltea el if
     ##for (int i = 0; i < cur; i++)
-    li t0, zero  ## int i = 0
+    li t0, 0  ## int i = 0
     lw t1, CURSOR_POS($fp)  ## t1 = cur
 for:
     subu t3, t0, t1  ## t3 = i - cur
     bgez t3, afterIf  ## if i >= cur termino el for y salto a afterIf
-    calPutch
+    callPutch
     addu t0, t0, 1  ## i++
     j for
 afterIf:
