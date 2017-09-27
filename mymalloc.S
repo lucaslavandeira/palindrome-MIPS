@@ -44,9 +44,9 @@ mymalloc:
 	sw a0, 20(sp)  # Argument building area (#6).
 	sw a0, 16(sp)  # Argument building area (#5).
 	sw a0, 12(sp)  # Argument building area (#4, a3).
-	sw a0,  8(sp)  # Argument building area (#3, a2).
-	sw a0,  4(sp)  # Argument building area (#2, a1).
-	sw a0,  0(sp)  # Argument building area (#1, a0).
+	sw a0, 8(sp)  # Argument building area (#3, a2).
+	sw a0, 4(sp)  # Argument building area (#2, a1).
+	sw a0, 0(sp)  # Argument building area (#1, a0).
 #endif
 	move $fp, sp
     ##--------------------------------------------------------------------------
@@ -136,7 +136,7 @@ myfree:
 	move $fp, sp
 
 	# Calculate the actual mmap(2) pointer.
-	lw	t0, 24(sp)
+	lw t0, 24(sp)
 	subu t0, t0, 8
 	sw t0, 20(sp)
 

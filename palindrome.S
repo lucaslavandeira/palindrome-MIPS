@@ -86,7 +86,9 @@
     lw a0, IFD($fp)  ## guardo en a0 el file descriptor de entrada
     lw a1, IBUFFER($fp)  ## guardo en a1 el buffer de entrada
     lw a2, IBYTES($fp)  ## guardo en a2 el tamaño del buffer de entrada
-    la a3, IPOS  ## guardo en a3 la posicion de memoria de la pos de lectura
+    lw t0, IPOS($fp)
+    addu t0, t0, $fp
+    lw a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
     la t9, getch
     jal ra, t9
     addu t0, zero, -2  ## t0 = -2
@@ -99,7 +101,9 @@
     lw a0, IFD($fp)  ## guardo en a0 el file descriptor de entrada
     lw a1, IBUFFER($fp)  ## guardo en a1 el buffer de entrada
     lw a2, IBYTES($fp)  ## guardo en a2 el tamaño del buffer de entrada
-    la a3, IPOS  ## guardo en a3 la posicion de memoria de la pos de lectura
+    lw t0, IPOS($fp)
+    addu t0, t0, $fp
+    lw a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
     sw CARACTER_POS, 16($fp)  ## cargo la posicion de memoria
     la t9, getch
     jal ra, t9
@@ -139,7 +143,7 @@
 
     ##while (c != EOF) {
         ##if (belongsToSpace(c) && cur >= wordLen) {
-            ##word_len *= 2;
+            ##wordLen *= 2;
             ##word = (char*) realloc(word, wordLen);
             ##if (word == NULL) {
                 ##free(word);
@@ -233,7 +237,7 @@ palindrome:
     sw t0, CURSOR_POS($fp)  ## size_t cur = 0;
     callGetch
 while:
-    ##while (c != EOF)
+    ## while (c != EOF)
     li t0, EOF
     lb t1, CARACTER_POS($fp)  ## t1 = c
     beq t1, t0, return  ## if (C == EOF) sale del while
