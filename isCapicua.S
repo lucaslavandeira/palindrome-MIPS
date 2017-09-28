@@ -61,6 +61,7 @@
     .abicalls
     .align 2
     .globl isCapicua
+    .extern tolower
     .ent isCapicua
 isCapicua:
     ##--------------------------------------------------------------------------
@@ -94,34 +95,40 @@ for:
     ## tolower(word[i])
     ##--------------------------------------------------------------------------
     lw a0, BUFFER_POS($fp)  ## redundante pero provisorio
+    lw t0, FOR_COUNTER_POS($fp)  ## redundante pero provisorio
     addu t1, a0, t0  ##  t1 = buffer + i
-    lw t1, 0(t1)  ## t1 = *(buffer + i)
-    sw t1, FIRST_CARACTER_POS($fp)  ## salvo el caracter en la stackFrame
+    lb t1, 0(t1)  ## t1 = *(buffer + i)
+    sb t1, FIRST_CARACTER_POS($fp)  ## salvo el caracter en la stackFrame
     addu a0, t1, 0  ## cargo el caracter como argumento de la funcion tolower
     la t9, tolower
     jal ra, t9
+    sb v0, FIRST_CARACTER_POS($fp) ## salvo el caracter luego de la funcion
     ##--------------------------------------------------------------------------
     ## tolower(word[i])
     ##--------------------------------------------------------------------------
 
     ##--------------------------------------------------------------------------
-    ## word[len-i-1])
+    ## tolower(word[len-i-1]))
     ##--------------------------------------------------------------------------
     lw a1, LEN_POS($fp)  ## redundante pero provisorio
+    lw t0, FOR_COUNTER_POS($fp)  ## redundante pero provisorio
     subu t2, a1, t0  ##  t2 = len -i
     subu t2, t2, 1  ##  t2 = len - i - 1
     lw a0, BUFFER_POS($fp)  ## redundante pero provisorio
     addu t2, a0, t2  ##  t2 = buffer + len - i - 1
-    lw t2, 0(t2)  ## t2 = *(buffer + len - i - 1)
-    sw t2, LAST_CARACTER_POS($fp)  ## salvo el caracter en la stackFrame
+    lb t2, 0(t2)  ## t2 = *(buffer + len - i - 1)
+    sb t2, LAST_CARACTER_POS($fp)  ## salvo el caracter en la stackFrame
     addu a0, t2, 0  ## cargo el caracter como argumento de la funcion tolower
     la t9, tolower
     jal ra, t9
+    sb v0, LAST_CARACTER_POS($fp)  ## salvo el caracter luego de la funcion
     ##--------------------------------------------------------------------------
-    ## word[len-i-1])
+    ## tolower(word[len-i-1]))
     ##--------------------------------------------------------------------------
 
     ##if (tolower(word[i]) != tolower(word[len-i-1])) return false
+    lb t1, FIRST_CARACTER_POS($fp)  ## t1 = tolower(word[i])
+    lb t2, LAST_CARACTER_POS($fp)  ## t2 = tolower(word[len-i-1]))
     bne t1, t2, returnFalse
 
     ## Es necesario ya que antes fue instanciada la funcion tolower

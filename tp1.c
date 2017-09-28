@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <signal.h>
 //------------------------------------------------------------------------------
 // DEFINITIONS
 //------------------------------------------------------------------------------
@@ -22,59 +21,10 @@ const char help_str[] = "Usage:\n"
         "  -o, --output\tLocation of the output file.\n"
         "Examples:\n"
         "  tp0 -i ~/input -o\n";
-#define SPACE_SIZE 65
-#define SPACE_INDEX 123
-#define EMPTY (-1)
-char space[SPACE_SIZE];
-int spaceIndex[SPACE_INDEX];
+//------------------------------------------------------------------------------
+// EXTERNAL FUNCTIONS
+//------------------------------------------------------------------------------
 extern int palindrome(int ifd, size_t ibytes, int ofd, size_t obytes);
-//------------------------------------------------------------------------------
-// CHARGE SPACE
-//------------------------------------------------------------------------------
-// Del 97 al 122 estan las letras de a-z
-// Del 65 al 90 estan las letras de A-Z
-// Del 48 al 57 estan los numeros de 0-9
-// '-' es 45
-// '_' es 95
-void chargeSpace() {
-    int pos = 0;
-    for (int i = 0; i < SPACE_INDEX; i++) spaceIndex[i] = EMPTY;
-    //--------------------------------------------------------------------------
-    for (int i = 97; i <= 122; i++) {
-        space[pos] = (char)i;
-        spaceIndex[i] = pos;
-        pos++;
-    }
-    //--------------------------------------------------------------------------
-    for (int i = 65; i <= 90; i++) {
-        space[pos] = (char)i;
-        spaceIndex[i] = pos;
-        pos++;
-    }
-    //--------------------------------------------------------------------------
-    for (int i = 48; i <= 57; i++) {
-        space[pos] = (char)i;
-        spaceIndex[i] = pos;
-        pos++;
-    }
-    //--------------------------------------------------------------------------
-    // incluyo el guion medio
-    pos++;
-    space[pos] = '-';
-    spaceIndex[45] = pos;
-    //--------------------------------------------------------------------------
-    // incluyo el guion bajo
-    pos++;
-    space[pos] = '_';
-    spaceIndex[95] = pos;
-}
-//------------------------------------------------------------------------------
-// BELONGS TO SPACE
-//------------------------------------------------------------------------------
-bool belongsToSpace(int aChar) {
-    if (aChar >= SPACE_INDEX) return false;
-    return spaceIndex[aChar] != EMPTY;
-}
 //------------------------------------------------------------------------------
 // EQUAL
 //------------------------------------------------------------------------------
@@ -142,7 +92,6 @@ int main(int argc, char** argv) {
     int clean_exit = 0;
     if (argParse(argc, argv, fdescriptors, &clean_exit) == ERROR) return 1;
     if (clean_exit) return 0;  // finalizacion limpia, cuando se usa -h o -V
-    chargeSpace();
 
     FILE* archIn = fdescriptors[0];
     FILE* archOut = fdescriptors[1];
@@ -150,10 +99,10 @@ int main(int argc, char** argv) {
     int fdOut = fileno(archOut);
     if (fdIn == -1 || fdOut == -1) return 1;
 
-    size_t ibytes = 0, obytes = 0;
+    size_t ibytes = 40, obytes = 40;
     if (palindrome(fdIn, ibytes, fdOut, obytes) < 0) return 1;
-    if (fdescriptors[1] != stdout && fclose(fdescriptors[1]) == EOF) return 1;
-    if (fdescriptors[0] != stdin && fclose(fdescriptors[0]) == EOF) return 1;
+    if (archOut != stdout && fclose(archOut) == EOF) return 1;
+    if (archIn != stdin && fclose(archOut) == EOF) return 1;
     return 0;
 }
 //------------------------------------------------------------------------------
