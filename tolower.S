@@ -62,17 +62,17 @@ tolower:
     ## FIN INICIALIZACION DEL STACK FRAME
     ##--------------------------------------------------------------------------
     sw a0, CARACTER_POS($fp)  ## a0 = c
-    ## if (c >= 65 && c <= 90) return true;
+    ## if (c >= 65 && c <= 90) return c + 32
     li t0, 65
     subu t0, a0, t0  ## t0 = c - 65
-    bltz t0, lowercase  ## if (c - 65 < 0) sale del if
+    bltz t0, returnC  ## if (c - 65 < 0) sale del if
     li t0, 90
-    subu t0, a0, t0  ## t0 = c - 65
-    bgtz t0, lowercase  ## if (c - 65 > 0) sale del if
-    move v0, a0
-    j return
-lowercase:
+    subu t0, a0, t0  ## t0 = c - 90
+    bgtz t0, returnC  ## if (c - 90 > 0) sale del if
     addu v0, a0, 32
+    j return
+returnC:
+    move v0, a0
     j return
 ##------------------------------------------------------------------------------
 ## RETURN
