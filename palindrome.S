@@ -154,7 +154,7 @@
             ##}
             ##word[cur++] = c;
         ##} else {
-            ##if (stdinCapicua(word, cur)) {
+            ##if (isCapicua(word, cur)) {
                 ##for (int i = 0; i < cur; i++) {
                     ##if (putch(ofd, oBuffer, obytes, &oPos, word[i]) == -1) {
                         ##free(word);
@@ -215,21 +215,27 @@ palindrome:
     lw a0, CONSTANT_POS($fp)  ## cargo a0 con el parametro de la funcion malloc
     la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
-    ## falta verificar error en v0
+    ## Verifico el error
+    li t0, -1
+    beq v0, t0, returnWord
     sw v0, WORD($fp)  ## guardo el buffer en el stackFrame
 
     ## char* iBuffer = (char*) malloc(iBytes);
     lw a0, IBYTES_POS($fp)  ## cargo a0 con el parametro de la funcion malloc
     la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
-    ## falta verificar error en v0
+    ## Verifico el error
+    li t0, -1
+    beq v0, t0, returnIBuffer
     sw v0, IBUFFER($fp)  ## guardo el buffer en el stackFrame
 
     ## char* oBuffer = (char*) malloc(oBytes);
     lw a0, OBYTES_POS($fp)  ## cargo a0 con el parametro de la funcion malloc
     la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
-    ## falta verificar error en v0
+    ## Verifico el error
+    li t0, -1
+    beq v0, t0, returnOBuffer
     sw v0, OBUFFER($fp)  ## guardo el buffer en el stackFrame
 
     addu t0, zero, 0  ## guardo cero en t0
@@ -304,24 +310,27 @@ endWhile:
 ## RETURN
 ##------------------------------------------------------------------------------
 return:
-    ## free(word
-    lw a0, WORD($fp)  ## cargo a0 con el parametro de la funcion free
-    la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
-    jal ra, t9
-    ## falta verificar error en v0
-
-    ## free(iBuffer)
-    lw a0, IBUFFER($fp)  ## cargo a0 con el parametro de la funcion free
-    la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
-    jal ra, t9
-    ## falta verificar error en v0
-
     ## free(oBuffer)
     lw a0, OBUFFER($fp)  ## cargo a0 con el parametro de la funcion free
     la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
     ## falta verificar error en v0
 
+returnOBuffer:
+    ## free(iBuffer)
+    lw a0, IBUFFER($fp)  ## cargo a0 con el parametro de la funcion free
+    la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
+    jal ra, t9
+    ## falta verificar error en v0
+
+returnIBuffer:
+    ## free(word
+    lw a0, WORD($fp)  ## cargo a0 con el parametro de la funcion free
+    la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
+    jal ra, t9
+    ## falta verificar error en v0
+
+returnWord:
     lw gp, GP_POS(sp)
     lw $fp, FP_POS(sp)
     lw ra, RA_POS(sp)
