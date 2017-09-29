@@ -104,8 +104,8 @@
     lw t0, IPOS($fp)
     addu t0, t0, $fp
     move a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
-    lw t0, CARACTER_POS($fp)
-    sw t0, 16($fp)  ## cargo la posicion de memoria
+    lb t0, CARACTER_POS($fp)
+    sb t0, 16($fp)  ## cargo la posicion de memoria
     la t9, putch
     jal ra, t9
     addu t0, zero, -1  ## t0 = -1
@@ -246,7 +246,7 @@ while:
     ## if (belongsToSpace(c) && cur >= wordLen)
     ##--------------------------------------------------------------------------
     ## bool belongs = belongsToSpace(c);
-    lw a0, CARACTER_POS($fp)  ## t1 = c
+    lb a0, CARACTER_POS($fp)  ## t1 = c
     la t9, belongsToSpace
     jal ra, t9
     ## true = 1; false = 0
@@ -270,7 +270,7 @@ while:
     ##word[cur++] = c;
     lb t1, CARACTER_POS($fp)  ## t1 = c
     addu t1, t1, 1  ## t1++
-    sw t1, CARACTER_POS($fp)  ## c++
+    sb t1, CARACTER_POS($fp)  ## c++
     lw t0, WORD($fp)
     addu t0, t0, t1  ## t0 = word+cur
     lb t1, CARACTER_POS($fp)  ## t1 = c

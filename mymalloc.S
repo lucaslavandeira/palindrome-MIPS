@@ -53,7 +53,7 @@ mymalloc:
     ## FIN Inicializacion del stack frame
     ##--------------------------------------------------------------------------
 	## Adjust the original allocation size to a 4-byte boundary.
-	lw	t0, 40(sp)
+	lw t0, 40(sp)
 	addiu t0, t0, 3
 	and	t0, t0, 0xfffffffc
 	sw	t0, 40(sp)
