@@ -19,6 +19,10 @@
 #define FP_POS 60
 #endif
 
+#ifndef FOR_COUNTER_POS
+#define FOR_COUNTER_POS 52
+#endif
+
 #ifndef CARACTER_POS
 #define CARACTER_POS 48
 #endif
@@ -86,30 +90,26 @@
     lw a0, IFD_POS($fp)  ## guardo en a0 el file descriptor de entrada
     lw a1, IBUFFER($fp)  ## guardo en a1 el buffer de entrada
     lw a2, IBYTES_POS($fp)  ## guardo en a2 el tamaño del buffer de entrada
-    lw t0, IPOS($fp)
-    addu t0, t0, $fp
-    move a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
+    addu a3, $fp, IPOS  ## a3 = &pos
     la t9, getch
     jal ra, t9
-    addu t0, zero, -2  ## t0 = -2
-    beq v0, t0, return  ## if (c == -2) return ERROR
+    li t0, -2  ## t0 = -2
+    beq v0, t0, returnError  ## if (c == -2) return ERROR
     sb v0, CARACTER_POS($fp)  ## guardo el caracter leido en la stack frame
 .ENDM
 
 .MACRO callPutch
     ##int s = putch(ifd, iBuffer, ibytes, &iPos, char);
-    lw a0, IFD_POS($fp)  ## guardo en a0 el file descriptor de entrada
-    lw a1, IBUFFER($fp)  ## guardo en a1 el buffer de entrada
-    lw a2, IBYTES_POS($fp)  ## guardo en a2 el tamaño del buffer de entrada
-    lw t0, IPOS($fp)
-    addu t0, t0, $fp
-    move a3, t0  ## guardo en a3 la posicion de memoria de la pos de lectura
+    lw a0, OFD_POS($fp)  ## guardo en a0 el file descriptor de entrada
+    lw a1, OBUFFER($fp)  ## guardo en a1 el buffer de entrada
+    lw a2, OBYTES_POS($fp)  ## guardo en a2 el tamaño del buffer de entrada
+    addu a3, $fp, OPOS  ## a3 = &pos
     lb t0, CARACTER_POS($fp)
     sb t0, 16($fp)  ## cargo la posicion de memoria
     la t9, putch
     jal ra, t9
-    addu t0, zero, -1  ## t0 = -1
-    beq v0, t0, return  ## if (s == -1) return ERROR
+    li t0, -1  ## t0 = -1
+    beq v0, t0, returnError  ## if (s == -1) return ERROR
 .ENDM
 ##------------------------------------------------------------------------------
 ## CODIGO EQUIVALENTE EN C
@@ -238,7 +238,7 @@ palindrome:
     beq v0, t0, returnOBuffer
     sw v0, OBUFFER($fp)  ## guardo el buffer en el stackFrame
 
-    addu t0, zero, 0  ## guardo cero en t0
+    li t0, 0  ## guardo cero en t0
     sw t0, IPOS($fp)  ## IPos = 0
     sw t0, OPOS($fp)  ## IPos = 0
     sw t0, CURSOR_POS($fp)  ## size_t cur = 0;
@@ -247,7 +247,7 @@ while:
     ## while (c != EOF)
     li t0, EOF
     lb t1, CARACTER_POS($fp)  ## t1 = c
-    beq t1, t0, return  ## if (C == EOF) sale del while
+    beq t1, t0, returnSuccess  ## if (c == EOF) sale del while
     ##--------------------------------------------------------------------------
     ## if (belongsToSpace(c) && cur >= wordLen)
     ##--------------------------------------------------------------------------
@@ -270,13 +270,15 @@ while:
     ##word = (char*) realloc(word, wordLen);
     lw a0, WORD($fp)
     lw a1, CONSTANT_POS($fp)
-    la t9, realloc
+    la t9, myrealloc
     jal ra, t9
-    ## falta verificar el error, es decir, if (word == NULL)
+    ## Verificar el error, es decir, if (word == NULL) return ERROR;
+    li t7, -1
+    beq v0, t1, returnError
     ##word[cur++] = c;
-    lb t1, CARACTER_POS($fp)  ## t1 = c
-    addu t1, t1, 1  ## t1++
-    sb t1, CARACTER_POS($fp)  ## c++
+    lw t1, CURSOR_POS($fp)  ## t1 = cur
+    addu t1, t1, 1   ## t1++
+    sb t1, CURSOR_POS($fp)  ## c++
     lw t0, WORD($fp)
     addu t0, t0, t1  ## t0 = word+cur
     lb t1, CARACTER_POS($fp)  ## t1 = c
@@ -293,40 +295,59 @@ else:
     beq v0, t0, afterIf  ## if (isCapicua(word, cur) == false) saltea el if
     ##for (int i = 0; i < cur; i++)
     li t0, 0  ## int i = 0
+    sw t0, FOR_COUNTER_POS($fp)  ## salvo el contador del for
     lw t1, CURSOR_POS($fp)  ## t1 = cur
 for:
+    lw t0, FOR_COUNTER_POS($fp)  ## t0 = i
+    lw t1, CURSOR_POS($fp)  ## t1 = cur
     subu t3, t0, t1  ## t3 = i - cur
     bgez t3, afterIf  ## if i >= cur termino el for y salto a afterIf
+
+    lw t3, WORD($fp)  ## t3 = word
+    lw t0, FOR_COUNTER_POS($fp)  ## t0 = i
+    addu t3, t0, t3  ## t3 = word + i
+    lb t3, 0(t3)  ## t3 = *(word + i)
+    sb t3, CARACTER_POS($fp)
     callPutch
+    lw t0, FOR_COUNTER_POS($fp)  ## t0 = i
     addu t0, t0, 1  ## i++
+    sw t0, FOR_COUNTER_POS($fp)  ## salvo el contador del for
     j for
+
 afterIf:
     sw zero, CURSOR_POS($fp)  ##cur = 0;
 
 endWhile:
     callGetch
     j while
+
+returnError:
+    li v0, -1  ## return -1; Error
+    j return
+
+returnSuccess:
+    li v0, 0  ## return 0; Success
 ##------------------------------------------------------------------------------
 ## RETURN
 ##------------------------------------------------------------------------------
 return:
     ## free(oBuffer)
     lw a0, OBUFFER($fp)  ## cargo a0 con el parametro de la funcion free
-    la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
+    la t9, myfree  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
     ## falta verificar error en v0
 
 returnOBuffer:
     ## free(iBuffer)
     lw a0, IBUFFER($fp)  ## cargo a0 con el parametro de la funcion free
-    la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
+    la t9, myfree  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
     ## falta verificar error en v0
 
 returnIBuffer:
-    ## free(word
+    ## free(word);
     lw a0, WORD($fp)  ## cargo a0 con el parametro de la funcion free
-    la t9, mymalloc  ## cargo en t9 la direccion de la funcion mymalloc
+    la t9, myfree  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
     ## falta verificar error en v0
 

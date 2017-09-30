@@ -46,11 +46,9 @@
 ## Del 48 al 57 estan los numeros de 0-9
 ## '-' es 45
 ## '_' es 95
-##int stdinCapicua(const char* word, size_t len) {
+##bool isCapicua(const char* word, size_t len) {
     ## for (int i = 0; i < len; i++) {
-        ##if (tolower(word[i) != tolower(word[len - i - 1])) {
-                ##return false;
-        ##}
+        ##if (tolower(word[i]) != tolower(word[len - i - 1])) return false;
     ##}
     ##return true;
 ##}
@@ -61,7 +59,6 @@
     .abicalls
     .align 2
     .globl isCapicua
-    .extern tolower
     .ent isCapicua
 isCapicua:
     ##--------------------------------------------------------------------------
@@ -87,38 +84,39 @@ isCapicua:
     lw a1, LEN_POS($fp)
     ## for (int i = 0; i < len; i++)
 for:
-            lw t0, FOR_COUNTER_POS($fp)
-            subu t3, t0, a1  ## t3 = i - len
-            bgez t3, returnTrue  ## if i >= len termino el for
+    lw t0, FOR_COUNTER_POS($fp)
+    lw a1, LEN_POS($fp)
+    subu t3, t0, a1  ## t3 = i - len
+    bgez t3, returnTrue  ## if i >= len termino el for
 
-            ##--------------------------------------------------------------------------
-            ## tolower(word[i])
-            ##--------------------------------------------------------------------------
-            lw a0, BUFFER_POS($fp)  ## redundante pero provisorio
-            lw t0, FOR_COUNTER_POS($fp)  ## redundante pero provisorio
-            addu t1, a0, t0  ##  t1 = buffer + i
-            lb t1, 0(t1)  ## t1 = *(buffer + i)
-            sb t1, FIRST_CARACTER_POS($fp)  ## salvo el caracter en la stackFrame
-            addu a0, t1, 0  ## cargo el caracter como argumento de la funcion tolower
-            la t9, tolower
-            jal ra, t9
-            sb v0, FIRST_CARACTER_POS($fp) ## salvo el caracter luego de la funcion
-            ##--------------------------------------------------------------------------
-            ## tolower(word[i])
-            ##--------------------------------------------------------------------------
+    ##--------------------------------------------------------------------------
+    ## tolower(word[i])
+    ##--------------------------------------------------------------------------
+    lw a0, BUFFER_POS($fp)  ## redundante pero provisorio
+    lw t0, FOR_COUNTER_POS($fp)  ## redundante pero provisorio
+    addu t1, a0, t0  ##  t1 = buffer + i
+    lb t1, 0(t1)  ## t1 = *(buffer + i)
+    sb t1, FIRST_CARACTER_POS($fp)  ## salvo el caracter en la stackFrame
+    lb a0, FIRST_CARACTER_POS($fp)  ## cargo argumento de la funcion tolower
+    la t9, tolower
+    jal ra, t9
+    sb v0, FIRST_CARACTER_POS($fp) ## salvo el caracter luego de la funcion
+    ##--------------------------------------------------------------------------
+    ## tolower(word[i])
+    ##--------------------------------------------------------------------------
 
-            ##--------------------------------------------------------------------------
-            ## tolower(word[len-i-1]))
-            ##--------------------------------------------------------------------------
-            lw a1, LEN_POS($fp)  ## redundante pero provisorio
-            lw t0, FOR_COUNTER_POS($fp)  ## redundante pero provisorio
-            subu t2, a1, t0  ##  t2 = len -i
-            subu t2, t2, 1  ##  t2 = len - i - 1
-            lw a0, BUFFER_POS($fp)  ## redundante pero provisorio
-            addu t2, a0, t2  ##  t2 = buffer + len - i - 1
-            lb t2, 0(t2)  ## t2 = *(buffer + len - i - 1)
-            sb t2, LAST_CARACTER_POS($fp)  ## salvo el caracter en la stackFrame
-    addu a0, t2, 0  ## cargo el caracter como argumento de la funcion tolower
+    ##--------------------------------------------------------------------------
+    ## tolower(word[len-i-1]))
+    ##--------------------------------------------------------------------------
+    lw a1, LEN_POS($fp)  ## redundante pero provisorio
+    lw t0, FOR_COUNTER_POS($fp)  ## redundante pero provisorio
+    subu t2, a1, t0  ##  t2 = len -i
+    subu t2, t2, 1  ##  t2 = len - i - 1
+    lw a0, BUFFER_POS($fp)  ## redundante pero provisorio
+    addu t2, a0, t2  ##  t2 = buffer + len - i - 1
+    lb t2, 0(t2)  ## t2 = *(buffer + len - i - 1)
+    sb t2, LAST_CARACTER_POS($fp)  ## salvo el caracter en la stackFrame
+    lb a0, LAST_CARACTER_POS($fp)  ## cargo argumento de la funcion tolower
     la t9, tolower
     jal ra, t9
     sb v0, LAST_CARACTER_POS($fp)  ## salvo el caracter luego de la funcion
