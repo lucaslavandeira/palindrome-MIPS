@@ -21,17 +21,20 @@ bool testFunction(char* word, size_t len) {
 // MAIN
 //------------------------------------------------------------------------------
 int main(int argc, char** argv) {
+    printf("Running isCapicua test.........");
     char* msg[] = {"Aa", "a", "Somos", "somos", "hola", "No es capicua"};
     bool ref, test;
     size_t size = 6;
+    bool itFailed = false;
     for (int i = 0; i < size; i++) {
         test = isCapicua(msg[i], strlen(msg[i]));
         ref = testFunction(msg[i], strlen(msg[i]));
         if (ref != test) {
-            printf("test function failed with string: %s\n", msg[i]);
+            itFailed = true;
+            printf("ERROR: Failed with string: %s\n", msg[i]);
         }
     }
-    printf("test function success....OK\n");
+    if (!itFailed) printf("OK\n");
     return 0;
 }
 //------------------------------------------------------------------------------

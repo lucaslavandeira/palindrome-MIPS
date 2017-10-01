@@ -25,6 +25,7 @@ bool testFunction(char c) {
 // MAIN
 //------------------------------------------------------------------------------
 int main() {
+    printf("Running belongsToSpace test.......");
     char msg[] = "1234hola como estas Todo bien <<<<<>>>>>+++*  hola+";
     const size_t size = strlen(msg);
     bool ref, test;
@@ -32,9 +33,9 @@ int main() {
         ref = testFunction(msg[i]);
         test = belongsToSpace(msg[i]);
         if (test != ref) {
-            printf("function failed in caracter: %c....ERROR\n", msg[i]);
+            printf("ERROR: Failed at caracter: %c\n", msg[i]);
         }
     }
-    printf("function test success: ....OK\n");
+    printf("OK\n");
 }
 //------------------------------------------------------------------------------
