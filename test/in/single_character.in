@@ -1,0 +1,1 @@
+-i test/single_character.txt -o run.out

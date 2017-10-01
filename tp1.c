@@ -18,10 +18,10 @@ const char help_str[] = "Usage:\n"
         "  -h, --help\tPrint this information.\n"
         "  -i, --input\tLocation of the input file.\n"
         "  -o, --output\tLocation of the output file.\n"
-        "  -I, --ibuf-bytes\tbyte-count of the input buffer"
-        "  -O, --obuf-bytes\tbyte-count of the output buffer"
+        "  -I, --ibuf-bytes\tbyte-count of the input buffer\n"
+        "  -O, --obuf-bytes\tbyte-count of the output buffer\n"
         "Examples:\n"
-        "  tp0 -i ~/input -o ~/output\n";
+        "  tp1 -i ~/input -o ~/output\n";
 //------------------------------------------------------------------------------
 // EXTERNAL FUNCTIONS
 //------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ int argParse(int argc, char** argv, FILE** descriptors, size_t** ref) {
                 return SUCCESS;
             }
             if (equal(flag, "-V") || equal(flag, "--version")) {
-                printf("tp0: version %s\n", VERSION);
+                printf("tp1: version %s\n", VERSION);
                 *ref[2] = 1;
                 return SUCCESS;
             }
