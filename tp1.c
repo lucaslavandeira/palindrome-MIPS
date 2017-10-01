@@ -37,7 +37,7 @@ bool equal(const char* str1, const char* str2) {
 //------------------------------------------------------------------------------
 int argParse(int argc, char** argv, FILE** descriptors, size_t** ref) {
     int arg = 1;
-    const int size = 8;
+    const int size = 12;
     const char* flags[] = {"-i", "-o", "-V", "-h", "--version", "--help",
                            "--input", "--output", "-I", "-O", "--ibuf-bytes",
                            "--obuf-bytes"};
