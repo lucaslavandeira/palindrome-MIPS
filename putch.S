@@ -19,6 +19,10 @@
 #define FRAME_POINTER_POS 28
 #endif
 
+#ifndef WHILE_COUNTER_POS
+#define WHILE_COUNTER_POS 20
+#endif
+
 #ifndef CHAR_POS
 #define CHAR_POS 56
 #endif
@@ -54,14 +58,14 @@
 ##------------------------------------------------------------------------------
 ##int putch(int fd, char* buffer, size_t oBytes, size_t* pos, char c) {
     ##if (*pos == oBytes || c == EOF) {
-        ##*pos = 0
         ##int sent = 0;
         ##ssize_t bytesSent;
-        ##while (sent < oBytes) {
-            ##bytesSent = write(fd, buffer+sent, oBytes-sent);
+        ##while (sent < *pos) {
+            ##bytesSent = write(fd, buffer+sent, *pos-sent);
             ##if (bytesSent == -1) return -1;
             ##sent += bytesSent;
         ##}
+        ##*pos = 0
     ##}
     ##buffer[*pos] = c;
     ##*pos++;
@@ -80,9 +84,9 @@ putch:
     ## Inicializacion del stack frame
     ##--------------------------------------------------------------------------
     .frame $fp, STACK_FRAME_SIZE, ra
-    .set	noreorder
+    .set noreorder
     .cpload t9
-    .set	reorder
+    .set reorder
     subu sp, sp, STACK_FRAME_SIZE
     .cprestore GLOBAL_POINTER_POS
     sw $fp, FRAME_POINTER_POS(sp)
@@ -96,7 +100,7 @@ putch:
     lw t7, CHAR_POS($fp)  # caracter a escribir
     sb t7, CHAR_POS($fp)  # caracter a escribir
     ##--------------------------------------------------------------------------
-    ## Inicializacion del stack frame
+    ## FIN Inicializacion del stack frame
     ##--------------------------------------------------------------------------
     ##if (*pos == oBytes || c == EOF)
     dereferencePosTot0  # t0 = *pos
@@ -104,7 +108,7 @@ putch:
     lw a2, OBYTES_POS($fp)  # Redundante pero provisorio
     ## a2 = oBytes
     beq a2, t0, writeFile  # if (*pos == oBytes) writeFile
-    lw t7, CHAR_POS($fp)   # Redundante pero provisorio t7 = c
+    lb t7, CHAR_POS($fp)   # Redundante pero provisorio t7 = c
     li t0, EOF
     beq t7, t0, writeFile  # if (*pos == 0) writeFile
 ##------------------------------------------------------------------------------
@@ -114,16 +118,16 @@ writeValue:
     dereferencePosTot0  # t0 = *pos
 
     ## buffer[+pos];
-    lw a1, BUFFER_POS($fp)  # Redundante pero provisorio a1 = buffer
-    addu a1, a1, t0  # cargo en a1 la dir de mem de lo ocupado en Buffer[pos]
-    ## a1 = buffer + pos
-    lw t7, CHAR_POS($fp)  # Redundante pero provisorio t7 = c
-    sb t7, 0(a1)  # Escribo en buffer[pos] el caracter recibido buffer[pos] = c
+    lw a1, BUFFER_POS($fp)  # a1 = buffer
+    addu a1, a1, t0  # a1 = buffer + pos;
+    lb t7, CHAR_POS($fp)  # t7 = c
+    sb t7, 0(a1)  # *(buffer + pos) = c
 
     ## *pos++;
     dereferencePosTot0  # t0 = *pos
     addu t0, t0, 1  # incremento el valor de la posicion
-    sw t0, 0(a3)  # guardo el incremento en la direccion de memoria de 'pos'
+    lw a3, POSITION_POS($fp)  # a3 = &pos;
+    sw t0, 0(a3)  # *pos++;
 
     li v0, 0  # return 0
 ##------------------------------------------------------------------------------
@@ -141,30 +145,28 @@ return:
 ## WRITE FILE
 ##------------------------------------------------------------------------------
 writeFile:
-    ## Aca desreferencio pos, y le guardo cero, y luego hago que la posicion
-    ## de memoria de pos a apunte a ese nuevo valor
-    ## *pos = 0
-    dereferencePosTot0  # t0 = *pos
-    addu t0, zero, 0  # le guardo el valor 0  a 'pos'
-    sw t0, 0(a3)  # guardo el nuevo valor en la direccion de memoria de 'pos'
-    ## *pos = 0
-    
     li t1, 0  # int sent = 0
-    lw a2, OBYTES_POS($fp)  # Redundante pero provisorio  a2 = oBytes
+    sw t1, WHILE_COUNTER_POS($fp)  ## salvo los bytes enviados en stack frame
 while:
     ## Aca pregunto si la condicion del while es falsa. De serlo sigo
     ## con la parte de escribir el siguiente caracter del buffer, es decir,
     ## con la parte del codigo llamada writeValue
-    ## t1 = sent;   a2 = oBytes
-    subu t2, t1, a2  # t2 = sent - oBytes
-    bgez t2, writeValue  # if (sent >= oBytes) sale del while
+    ## while (sent < *pos)
+    dereferencePosTot0  # t0 = *pos
+    lw t1, WHILE_COUNTER_POS($fp)  ## t1 = sent;
+    subu t2, t1, t0  # t2 = sent - *pos
+    bgez t2, afterWhile  # if (sent - *pos >= 0) sale del while
 
     ## Aca llamo al SYSCALL del write
     li v0, SYS_write
     lw a0, FD_POS($fp)  # Redundante pero provisorio
     lw a1, BUFFER_POS($fp)  # Redundante pero provisorio
+    lw t1, WHILE_COUNTER_POS($fp)  ## t1 = sent;
     addu a1, a1, t1  # buffer+sent
-    lw a2, OBYTES_POS($fp)  # Redundante pero provisorio
+    dereferencePosTot0  # t0 = *pos
+    move a2, t0  # a2 = *pos
+    lw t1, WHILE_COUNTER_POS($fp)  ## t1 = sent;
+    subu a2, a2, t1  ##  a2 = *pos - sent
     SYSCALL
     ##--------------------------------------------------------------------------
     ## VERIFICACION DE ERRORES DE WRITE
@@ -173,17 +175,29 @@ while:
 
     ## write retorna su valor en el registro v0. Entonces si v0 es -1 quiere
     ## decir que hubo un error.
-    addu t3, zero, -1  # t3 = -1
+    li t3, -1  # t3 = -1
     beq v0, t3, ERROR  # si vo == -1 retorna error
 
     ## Actualizo la posicion del buffer para que pueda seguir escribiendo sobre
     ## el en la parte restante
-    addu t1, t1, v0  #  sent += bytesSent;
+    lw t1, WHILE_COUNTER_POS($fp)  ## t1 = sent;
+    addu t1, t1, v0
+    sw t1, WHILE_COUNTER_POS($fp)  ##  #  sent += bytesSent;
     ##--------------------------------------------------------------------------
     ## FIN VERIFICACION DE ERRORES DE WRITE
     ##--------------------------------------------------------------------------
     j while
+
+afterWhile:
+    ## Aca desreferencio pos, y le guardo cero, y luego hago que la posicion
+    ## de memoria de pos a apunte a ese nuevo valor
+    ## *pos = 0
+    li t0, 0  # t0 = 0
+    lw a3, POSITION_POS($fp)  # a3 = &pos;
+    sw t0, 0(a3)  # *pos = 0
+    j writeValue
+
 ERROR:
-    addu v0, zero, -1  # Guardo en v0 el valor -1 que representa error
+    li v0, -1  # Guardo en v0 el valor -1 que representa error
     j return
 ##------------------------------------------------------------------------------

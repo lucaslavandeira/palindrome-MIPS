@@ -47,6 +47,7 @@
 ## '-' es 45
 ## '_' es 95
 ##bool isCapicua(const char* word, size_t len) {
+    ## if (len == 0) return false;
     ## for (int i = 0; i < len; i++) {
         ##if (tolower(word[i]) != tolower(word[len - i - 1])) return false;
     ##}
@@ -78,6 +79,9 @@ isCapicua:
     ##--------------------------------------------------------------------------
     ## FIN INICIALIZACION DEL STACK FRAME
     ##--------------------------------------------------------------------------
+    lw a1, LEN_POS($fp)
+    beq a1, zero, returnFalse  ## if (len == 0) return false;
+
     li t0, 0  ## int i = 0
     sw t0, FOR_COUNTER_POS($fp)  ## salvo el contador del for en la stackFrame
     lw a0, BUFFER_POS($fp)

@@ -25,8 +25,8 @@
 ##------------------------------------------------------------------------------
 	.text
 	.align	2
-	.globl	mymalloc
-	.ent	mymalloc
+	.globl mymalloc
+	.ent mymalloc
 mymalloc:
     ##--------------------------------------------------------------------------
     ## Inicializacion del stack frame
