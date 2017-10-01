@@ -1,0 +1,14 @@
+Usage:
+  tp1 -h
+  tp1 -V
+  tp1 [options]
+Options:
+  -V, --version	Print version and quit.
+  -h, --help	Print this information.
+  -i, --input	Location of the input file.
+  -o, --output	Location of the output file.
+  -I, --ibuf-bytes	byte-count of the input buffer
+  -O, --obuf-bytes	byte-count of the output buffer
+Examples:
+  tp1 -i ~/input -o ~/output
+

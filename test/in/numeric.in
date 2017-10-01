@@ -1,0 +1,1 @@
+-i test/numeric.in -o run.out

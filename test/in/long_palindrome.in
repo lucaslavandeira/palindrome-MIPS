@@ -1,0 +1,2 @@
+-i test/long_palindrome.txt -o run.out
+
