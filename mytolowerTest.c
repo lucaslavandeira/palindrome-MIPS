@@ -9,7 +9,7 @@ extern char mytolower(char c);
 // MAIN
 //------------------------------------------------------------------------------
 int main() {
-    printf("Running mytolower test.......");
+    printf("Running mytolower test....... ");
     char msg[] = "ABCDEfghijK8907";
     size_t size = strlen(msg);
     for (int i = 0; i < size; i++) {

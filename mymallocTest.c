@@ -9,6 +9,7 @@ extern void* myrealloc(void* pointer, size_t newSize);
 // MAIN
 //------------------------------------------------------------------------------
 int main() {
+    printf("Running mymalloc test....... ");
     const size_t size = 20;
     size_t* buffer =  (size_t*) mymalloc(sizeof(size_t) * size);
     if (!buffer) {

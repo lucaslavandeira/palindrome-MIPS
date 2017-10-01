@@ -25,7 +25,7 @@ bool testFunction(char c) {
 // MAIN
 //------------------------------------------------------------------------------
 int main() {
-    printf("Running belongsToSpace test.......");
+    printf("Running belongsToSpace test....... ");
     char msg[] = "1234hola como estas Todo bien <<<<<>>>>>+++*  hola+";
     const size_t size = strlen(msg);
     bool ref, test;

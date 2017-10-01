@@ -20,8 +20,8 @@ bool testFunction(char* word, size_t len) {
 //------------------------------------------------------------------------------
 // MAIN
 //------------------------------------------------------------------------------
-int main(int argc, char** argv) {
-    printf("Running isCapicua test.........");
+int main() {
+    printf("Running isCapicua test......... ");
     char* msg[] = {"Aa", "a", "Somos", "somos", "hola", "No es capicua"};
     bool ref, test;
     size_t size = 6;

@@ -26,7 +26,7 @@ int putch2(int fd, char* buffer, size_t oBytes, size_t* pos, char c) {
 //------------------------------------------------------------------------------
 // MAIN
 //------------------------------------------------------------------------------
-int main(int argc, char** argv) {
+int main() {
     printf("Running putch test........... ");
     FILE* archIn = fopen("in.txt", "r");
     if (archIn == NULL) {
