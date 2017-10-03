@@ -30,7 +30,7 @@
 ## Del 48 al 57 estan los numeros de 0-9
 ## '-' es 45
 ## '_' es 95
-##char tolower(char c) {
+##char mytolower(char c) {
     ## if (c >= 65 && c <= 90) {
         ## return c + 32;
     ##}

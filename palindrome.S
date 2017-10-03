@@ -99,28 +99,27 @@
 ##------------------------------------------------------------------------------
 ##int palindrome(int ifd, size_t ibytes, int ofd, size_t obytes) {
     ##size_t wordLen = 1024;
-    ##char* word = (char*) malloc(sizeof(char) * wordLen);
+    ##char* word = (char*) mymalloc(sizeof(char) * wordLen);
     ##if (word == NULL) return ERROR;
-    ##char* iBuffer = (char*) malloc(sizeof(char) * ibytes);
+    ##char* iBuffer = (char*) mymalloc(sizeof(char) * ibytes);
     ##if (iBuffer == NULL) {
-        ##free(word);
+        ##myfree(word);
         ##return ERROR;
     ##}
-    ##char* oBuffer = (char*) malloc(sizeof(char) * obytes);
+    ##char* oBuffer = (char*) mymalloc(sizeof(char) * obytes);
     ##if (oBuffer == NULL) {
-        ##free(word);
-        ##free(iBuffer);
+        ##myfree(word);
+        ##myfree(iBuffer);
         ##return ERROR;
     ##}
-    ##memset(word, 0, wordLen);
     ##size_t iPos = 0;
     ##size_t oPos = 0;
     ##size_t cur = 0;
     ##int c = getch(ifd, iBuffer, ibytes, &iPos);
     ##if (c == -2) {
-        ##free(word);
-        ##free(iBuffer);
-        ##free(oBuffer);
+        ##myfree(word);
+        ##myfree(iBuffer);
+        ##myfree(oBuffer);
         ##return ERROR;
     ##}
 
@@ -128,11 +127,11 @@
         ##if (belongsToSpace((char) c)) {
             ##if (cur >= wordLen) {
                 ##wordLen *= 2;
-                ##word = (char*) realloc(word, wordLen);
+                ##word = (char*) myrealloc(word, wordLen);
                 ##if (word == NULL) {
-                    ##free(word);
-                    ##free(iBuffer);
-                    ##free(oBuffer);
+                    ##myfree(word);
+                    ##myfree(iBuffer);
+                    ##myfree(oBuffer);
                     ##return ERROR;
                 ##}
             ##}
@@ -142,27 +141,26 @@
             ##if (isCapicua(word, cur)) {
                 ##for (int i = 0; i < cur; i++) {
                     ##if (putch(ofd, oBuffer, obytes, &oPos, word[i]) == -1) {
-                        ##free(word);
-                        ##free(iBuffer);
-                        ##free(oBuffer);
+                        ##myfree(word);
+                        ##myfree(iBuffer);
+                        ##myfree(oBuffer);
                         ##return ERROR;
                     ##}
                 ##}
             ##}
-            ##memset(word, 0, wordLen);
             ##cur = 0;
         ##}
         ##c = getch(ifd, iBuffer, ibytes, &iPos);
         ##if (c == -2) {
-            ##free(word);
-            ##free(iBuffer);
-            ##free(oBuffer);
+            ##myfree(word);
+            ##myfree(iBuffer);
+            ##myfree(oBuffer);
             ##return ERROR;
         ##}
     ##}
-    ##free(word);
-    ##free(iBuffer);
-    ##free(oBuffer);
+    ##myfree(word);
+    ##myfree(iBuffer);
+    ##myfree(oBuffer);
     ##return SUCCESS;
 ##------------------------------------------------------------------------------
 ## MACROS
@@ -360,25 +358,22 @@ returnSuccess:
 ## RETURN
 ##------------------------------------------------------------------------------
 return:
-    ## free(oBuffer)
-    lw a0, OBUFFER($fp)  ## cargo a0 con el parametro de la funcion free
-    la t9, myfree  ## cargo en t9 la direccion de la funcion mymalloc
+    ## myfree(oBuffer)
+    lw a0, OBUFFER($fp)  ## cargo a0 con el parametro de la funcion myfree
+    la t9, mymyfree  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
-    ## falta verificar error en v0
 
 returnOBuffer:
-    ## free(iBuffer)
-    lw a0, IBUFFER($fp)  ## cargo a0 con el parametro de la funcion free
-    la t9, myfree  ## cargo en t9 la direccion de la funcion mymalloc
+    ## myfree(iBuffer)
+    lw a0, IBUFFER($fp)  ## cargo a0 con el parametro de la funcion myfree
+    la t9, mymyfree  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
-    ## falta verificar error en v0
 
 returnIBuffer:
-    ## free(word);
-    lw a0, WORD($fp)  ## cargo a0 con el parametro de la funcion free
-    la t9, myfree  ## cargo en t9 la direccion de la funcion mymalloc
+    ## myfree(word);
+    lw a0, WORD($fp)  ## cargo a0 con el parametro de la funcion myfree
+    la t9, mymyfree  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
-    ## falta verificar error en v0
 
 returnWord:
     lw v0, RETURN_VALUE_POS($fp)  ## return v0

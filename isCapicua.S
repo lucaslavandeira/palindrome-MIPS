@@ -49,7 +49,7 @@
 ##bool isCapicua(const char* word, size_t len) {
     ## if (len == 0) return false;
     ## for (int i = 0; i < len; i++) {
-        ##if (tolower(word[i]) != tolower(word[len - i - 1])) return false;
+        ##if (mytolower(word[i]) != mytolower(word[len - i - 1])) return false;
     ##}
     ##return true;
 ##}
