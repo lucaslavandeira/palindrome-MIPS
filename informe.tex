@@ -106,6 +106,15 @@ El funcionamiento correcto del proyecto se sometió a prueba haciendo uso de var
     ibytes, como ya se ha mencionado, es el tamaño del buffer de entrada. Observamos que la velocidad del programa incrementa a medida que la capacidad del buffer aumenta y esto era de esperarse, ya que al aumentar el tamaño del buffer se producen menos lecturas del archivo. Estos resultados se ven reflejados en el siguiente gráfico:\\\\
     \includegraphics[width=14cm]{plots/times.png}\\
     
+    \begin{Verbatim}
+    Los tiempos de ejecución del TP0 fueron:
+    real    0m0.566s
+    user    0m0.386s
+    sys     0m0.008s
+    \end{Verbatim}
+    Donde el real time es el tiempo total de la ejecución del programa. Estos resultados fueron obtenidos de hacer el promedio de varias mediciones.\\
+    Observando los datos del TP0 y el gráfico de este mismo Trabajo, es fácil darse cuenta que a medida que el tamaño del buffer se agranda, disminuimos el tiempo de ejecución, superando al del TP0 rápidamente.
+    
     \section{Problemas encontrados}
 El desarrollo del programa no tuvo mayores inconvenientes, si bien fue difícil acostumbrarse a programar en MIPS, con un poco de practica e investigación de, como por ejemplo la manera de desreferenciar un puntero, se pudo completar el trabajo practico en buenas condiciones.
 
