@@ -360,19 +360,19 @@ returnSuccess:
 return:
     ## myfree(oBuffer)
     lw a0, OBUFFER($fp)  ## cargo a0 con el parametro de la funcion myfree
-    la t9, mymyfree  ## cargo en t9 la direccion de la funcion mymalloc
+    la t9, myfree  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
 
 returnOBuffer:
     ## myfree(iBuffer)
     lw a0, IBUFFER($fp)  ## cargo a0 con el parametro de la funcion myfree
-    la t9, mymyfree  ## cargo en t9 la direccion de la funcion mymalloc
+    la t9, myfree  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
 
 returnIBuffer:
     ## myfree(word);
     lw a0, WORD($fp)  ## cargo a0 con el parametro de la funcion myfree
-    la t9, mymyfree  ## cargo en t9 la direccion de la funcion mymalloc
+    la t9, myfree  ## cargo en t9 la direccion de la funcion mymalloc
     jal ra, t9
 
 returnWord:
